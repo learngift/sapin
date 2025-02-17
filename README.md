@@ -1,4 +1,4 @@
-Diary:
+##Diary: step 1: create project
 
 ```
 $ node --version
@@ -14,6 +14,70 @@ git branch -m main
 git add -A .
 git commit -m "initial commit: create vite 6 with react 19 and typescript"
 ```
+
+##Step 2: add tailwind 4.0.6
+
+```
+npm install -D tailwindcss postcss autoprefixer @types/node @tailwindcss/vite
+```
+
+https://tailwindcss.com/docs/installation/using-vite
+
+Update vite.config.js
+
+```
+0a1
+> import path from 'path'
+1a3
+> import tailwindcss from '@tailwindcss/vite'
+6c8,13
+<   plugins: [react()],
+---
+>   plugins: [tailwindcss(), react()],
+>   resolve: {
+>     alias: {
+>       '@': path.resolve(__dirname, './src/')
+>     }
+>   }
+```
+
+Update tsconfig.json
+
+```
+6c6,12
+<   ]
+---
+>   ],
+>   "compilerOptions": {
+>     "baseUrl": ".",
+>     "paths": {
+>       "@/*": ["./src/*"]
+>     }
+>   }
+```
+
+Update tsconfig.app.json
+
+```
+23c23,31
+<     "noUncheckedSideEffectImports": true
+---
+>     "noUncheckedSideEffectImports": true,
+>
+>     /* shadcdn */
+>     "baseUrl": ".",
+>     "paths": {
+>       "@/*": [
+>         "./src/*"
+>       ]
+>     }
+```
+
+Le but de ces modifications est de définir un alias @ qui pointe vers le répertoire src.
+Cela permet de faire
+`import MonComposant from '@/components/MonComposant'`
+au lieu de
+`import MonComposant from '../components/MonComposant'`
 
 # React + TypeScript + Vite
 
