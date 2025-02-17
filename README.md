@@ -92,6 +92,10 @@ Ajout du composant resizable
 
 Tout est prét pour commencer à coder.
 
+##Step 4: react-router-dom
+`npm install  react-router-dom`
+Ajout des compasants et des données (static/api)
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
