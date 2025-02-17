@@ -79,6 +79,19 @@ Cela permet de faire
 au lieu de
 `import MonComposant from '../components/MonComposant'`
 
+##Step 3: add shadcn@canary
+
+```
+$ npx shadcn@canary init
+neutral
+yes
+```
+
+Ajout du composant resizable
+`$ npx shadcn@canary add resizable`
+
+Tout est prét pour commencer à coder.
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
