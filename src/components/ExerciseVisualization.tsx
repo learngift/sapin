@@ -1,9 +1,23 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Projection from "@/utils/Projection";
 import CanvasComponent from "@/components/CanvasComponent";
+import { DataState } from "@/utils/types";
 
-const dataModel = {
+type DataKey =
+  | "exercise"
+  | "geo_pts"
+  | "airways"
+  | "sids"
+  | "stars"
+  | "volumes"
+  | "flights";
+
+type LoadStatus = "pending" | "loaded" | "finished" | "error" | "error parsing";
+
+const dataModel: Record<DataKey, { label: string; api: string }> = {
   exercise: { label: "Exercise", api: "exercise.json" },
   geo_pts: { label: "Points", api: "geo_pts.json" },
   airways: { label: "Airways", api: "airways.json" },
@@ -12,7 +26,7 @@ const dataModel = {
   volumes: { label: "Volumes", api: "volumes.json" },
   flights: { label: "Flights", api: "flights.json" },
 };
-const dataList = [
+const dataList: DataKey[] = [
   "exercise",
   "geo_pts",
   "airways",
@@ -24,21 +38,28 @@ const dataList = [
 
 function ExerciseVisualization() {
   const { simulationId, exerciseId } = useParams(); // Paramètres de l'URL
-  const [progress, setProgress] = useState(
-    Object.fromEntries(dataList.map((key) => [key, "pending"]))
+  const [progress, setProgress] = useState<Record<DataKey, LoadStatus>>(
+    Object.fromEntries(dataList.map((key) => [key, "pending"])) as Record<
+      DataKey,
+      LoadStatus
+    >
   );
 
-  const [data, setData] = useState(
-    Object.fromEntries(dataList.map((key) => [key, null]))
+  const [data, setData] = useState<DataState>(
+    Object.fromEntries(
+      dataList.map((key) => [key, null])
+    ) as unknown as DataState
   );
 
   // Fonction pour charger un fichier JSON
-  const fetchJson = async (key) => {
+  const fetchJson = async (key: DataKey): Promise<void> => {
     const label = dataModel[key].label;
+    console.log(label);
     const filename = dataModel[key].api;
     try {
       // delay for demo effect
-      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const delay = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
 
       const response = await fetch(
         `/api/${simulationId}/${exerciseId}/${filename}`
@@ -73,7 +94,7 @@ function ExerciseVisualization() {
   useEffect(() => {
     // Use Promise.all to parallelize queries
     Promise.all(dataList.map((key) => fetchJson(key)));
-  }, [simulationId, exerciseId]);
+  }, [simulationId, exerciseId, fetchJson]);
 
   useEffect(() => {
     if (progress.flights !== "finished") {
@@ -106,10 +127,10 @@ function ExerciseVisualization() {
         progress.geo_pts === "loaded" &&
         progress.exercise === "finished"
       ) {
-        var projection;
-        const pc = data.exercise.proj_center;
+        let projection: Projection;
+        const pc = data.exercise?.proj_center;
         if (pc) {
-          const point = data.geo_pts.nav[pc] || data.geo_pts.outl[pc];
+          const point = data.geo_pts?.nav[pc] || data.geo_pts?.outl[pc];
           if (point === undefined) {
             console.log(`setProgress geo_pts error parsing`);
             setProgress((prev) => ({ ...prev, geo_pts: "error parsing" }));
@@ -120,8 +141,8 @@ function ExerciseVisualization() {
           projection = new Projection();
         }
         const all_pts = [
-          ...Object.entries(data.geo_pts.nav),
-          ...Object.entries(data.geo_pts.outl),
+          ...Object.entries(data.geo_pts?.nav ?? {}),
+          ...Object.entries(data.geo_pts?.outl ?? {}),
         ];
         const new_geo_pts = {
           ...data.geo_pts,
@@ -150,11 +171,14 @@ function ExerciseVisualization() {
           bounds: bounds,
         };
         console.log(`setData exercise geo_pts`);
-        setData((prevData) => ({
-          ...prevData,
-          geo_pts: new_geo_pts,
-          exercise: new_exercise,
-        }));
+        setData(
+          (prevData: DataState) =>
+            ({
+              ...prevData,
+              geo_pts: new_geo_pts,
+              exercise: new_exercise,
+            } as DataState)
+        );
         console.log(`setProgress geo_pts finished`);
         setProgress((prev) => ({ ...prev, geo_pts: "finished" }));
       } else if (progress.exercise === "loaded") {
@@ -167,7 +191,7 @@ function ExerciseVisualization() {
   }, [progress]);
 
   useEffect(() => {
-    window.data = data;
+    (window as any).data = data;
   }, [data]);
 
   // Affichage de la progression

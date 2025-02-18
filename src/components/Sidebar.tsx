@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Sidebar = ({ visibility, updateVisibility, onClose }) => {
+interface Visibility {
+  airways: Record<string, boolean>; // Dictionnaire des airways cochés
+}
+
+interface SidebarProps {
+  visibility: Visibility;
+  updateVisibility: (newVisibility: Visibility) => void;
+  onClose: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({
+  visibility,
+  updateVisibility,
+  onClose,
+}) => {
   const navigate = useNavigate();
-  const [selectedAirways, setSelectedAirways] = useState(visibility.airways);
-  const [isAirwaysDialogOpen, setIsAirwaysDialogOpen] = useState(false);
+  const [selectedAirways, setSelectedAirways] = useState<
+    Record<string, boolean>
+  >(visibility.airways);
+  const [isAirwaysDialogOpen, setIsAirwaysDialogOpen] =
+    useState<boolean>(false);
 
   const handleOpenAirwaysDialog = () => setIsAirwaysDialogOpen(true);
   const handleCloseAirwaysDialog = () => setIsAirwaysDialogOpen(false);
 
   const handleSelectAll = () => {
-    const updated = { ...selectedAirways };
+    const updated: Record<string, boolean> = { ...selectedAirways };
     for (const k in updated) {
       updated[k] = true;
     }
@@ -27,7 +44,7 @@ const Sidebar = ({ visibility, updateVisibility, onClose }) => {
     updateVisibility({ ...visibility, airways: updated });
   };
 
-  const handleCheckboxChange = (name) => {
+  const handleCheckboxChange = (name: string): void => {
     const updated = { ...selectedAirways, [name]: !selectedAirways[name] };
     setSelectedAirways(updated);
     updateVisibility({ ...visibility, airways: updated });

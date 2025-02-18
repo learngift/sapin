@@ -1,20 +1,25 @@
 const ratio = Math.PI / (180 * 3600);
-const sec2rad = (seconds) => seconds * ratio;
-const rad2sec = (radians) => radians / ratio;
+const sec2rad = (seconds: number): number => seconds * ratio;
+const rad2sec = (radians: number): number => radians / ratio;
 
 export default class Projection {
   // Earth radius expressed in Nm
   static earthRadius = 3437.746770785;
 
+  private latitudeRadians: number;
+  private sinusLatitude: number;
+  private cosinusLatitude: number;
+  private longitudeRadians: number;
+
   /**
    * Default constructor creates a projection centered on Paris
    */
-  constructor(center = [48.8667 * 3600, 2.3167 * 3600]) {
+  constructor(center: [number, number] = [48.8667 * 3600, 2.3167 * 3600]) {
     // Paris
     this.setCenter(center);
   }
 
-  setCenter(center) {
+  setCenter(center: [number, number]): void {
     this.latitudeRadians = sec2rad(center[0]);
     this.sinusLatitude = Math.sin(this.latitudeRadians);
     this.cosinusLatitude = Math.cos(this.latitudeRadians);
@@ -25,7 +30,7 @@ export default class Projection {
     return [rad2sec(this.latitudeRadians), rad2sec(this.longitudeRadians)];
   }
 
-  geo2stereo(point) {
+  geo2stereo(point: [number, number]): [number, number] {
     const latRad = sec2rad(point[0]);
     const lonRad = sec2rad(point[1]);
     const slat = Math.sin(latRad);
@@ -41,7 +46,7 @@ export default class Projection {
     return [x, y];
   }
 
-  stereo2geo(feet) {
+  stereo2geo(feet: [number, number]): [number, number] {
     const x = feet[0];
     const y = feet[1];
 
@@ -75,9 +80,13 @@ export default class Projection {
     return [rad2sec(latitudeRadians), rad2sec(longitudeRadians)];
   }
 
-  formatLatLon(latLong) {
+  formatLatLon(latLong: [number, number]): string {
     const [latitude, longitude] = latLong;
-    const formatCoord = (seconds, positiveDir, negativeDir) => {
+    const formatCoord = (
+      seconds: number,
+      positiveDir: string,
+      negativeDir: string
+    ) => {
       const direction = seconds >= 0 ? positiveDir : negativeDir;
       const absSeconds = Math.abs(seconds);
       const degrees = Math.floor(absSeconds / 3600);

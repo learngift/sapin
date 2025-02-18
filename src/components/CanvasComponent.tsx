@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, RefObject } from "react";
+import { DataState, VisibilityState } from "@/utils/types";
 import Sidebar from "./Sidebar";
 
 interface Bounds {
@@ -10,8 +11,8 @@ interface Bounds {
 const zoomStep = [1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32];
 let zoomIndex = 0;
 let refScale: number,
-  refOffsetX,
-  refOffsetY,
+  refOffsetX: number,
+  refOffsetY: number,
   scale: number,
   offsetX: number,
   offsetY: number;
@@ -20,7 +21,7 @@ function calculateScaleAndOffset(
   bounds: Bounds,
   canvasWidth: number,
   canvasHeight: number
-) {
+): [number, number, number] {
   const dataWidth = bounds.xMax - bounds.xMin;
   const dataHeight = bounds.yMax - bounds.yMin;
   const ratioData = dataWidth / dataHeight;
@@ -42,36 +43,42 @@ function calculateScaleAndOffset(
     ];
   }
 }
-function toX(xNm: number) {
+function toX(xNm: number): number {
   return xNm * scale + offsetX;
 }
-function fromX(x: number) {
+function fromX(x: number): number {
   return (x - offsetX) / scale;
 }
-function toY(yNm: number) {
+function toY(yNm: number): number {
   return yNm * scale + offsetY;
 }
-function fromY(y: number) {
+function fromY(y: number): number {
   return (y - offsetY) / scale;
 }
 
-const CanvasComponent = ({ data }) => {
+interface CanvasComponentProps {
+  data: DataState;
+}
+
+const CanvasComponent = ({ data }: CanvasComponentProps) => {
   //const [fps, setFps] = useState(0);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const airways = Object.keys(data.airways);
-  console.log("airways");
-  console.log(data.airways);
-  const visibility = useRef({
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+  const airways = Object.keys(data.airways ?? {});
+  console.log("airways", data.airways);
+  const visibility = useRef<VisibilityState>({
     airways: Object.assign({}, ...airways.map((k) => ({ [k]: true }))),
   });
-  const pos = useRef([0, 0]);
-  const fps = useRef(0);
-  const canvasRef = useRef(null);
+  const pos = useRef<[number, number]>([0, 0]);
+  const fps = useRef<number>(0);
+  const canvasRef: RefObject<HTMLCanvasElement | null> = useRef(null);
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const context = canvas.getContext("2d");
+    if (!context) return;
 
     const resizeCanvas = () => {
+      if (!data.exercise?.bounds) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       [refScale, refOffsetX, refOffsetY] = calculateScaleAndOffset(
@@ -87,7 +94,7 @@ const CanvasComponent = ({ data }) => {
       //draw(context);
     };
 
-    const draw = (ctx) => {
+    const draw = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       if (data?.geo_pts?.proj) {
@@ -96,17 +103,17 @@ const CanvasComponent = ({ data }) => {
         ctx.font = `10px sans-serif`;
         const pts = data.geo_pts;
         for (const k in pts.nav) {
-          const [x, y] = pts.proj[k];
+          const [x, y] = pts.proj![k];
           ctx.fillText(triangleChar, toX(x), toY(y));
         }
         for (const k in pts.nav) {
-          const [x, y] = pts.proj[k];
+          const [x, y] = pts.proj![k];
           ctx.fillText(k, toX(x) + 8, toY(y) - 5);
         }
         ctx.fillStyle = "black";
-        const latLong = data.exercise.proj.stereo2geo(pos.current);
+        const latLong = data.exercise!.proj!.stereo2geo(pos.current);
         ctx.fillText(
-          `${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`,
+          `${data.exercise!.proj!.formatLatLon(latLong)}   ${fps.current} fps`,
           10,
           ctx.canvas.height - 10
         );
@@ -123,8 +130,8 @@ const CanvasComponent = ({ data }) => {
             if (visibility.current.airways[k] === false) continue;
             const airway = data.airways[k];
             for (let i = 0; i < airway.length; i++) {
-              if (airway[i] in pts.proj) {
-                const [x, y] = pts.proj[airway[i]];
+              if (airway[i] in pts.proj!) {
+                const [x, y] = pts.proj![airway[i]];
                 if (i == 0) {
                   ctx.moveTo(toX(x), toY(y));
                 } else {
@@ -142,7 +149,7 @@ const CanvasComponent = ({ data }) => {
       }
     };
     let lastTime = 0;
-    const render = (time) => {
+    const render = (time: number) => {
       const delta = time - lastTime;
       lastTime = time;
       // setFps(2+Math.round(1000 / delta));
@@ -150,7 +157,7 @@ const CanvasComponent = ({ data }) => {
       draw(context);
       requestAnimationFrame(render);
     };
-    const handleZoom = (event) => {
+    const handleZoom = (event: WheelEvent) => {
       const mouseX = event.offsetX;
       const mouseY = event.offsetY;
 
@@ -175,27 +182,27 @@ const CanvasComponent = ({ data }) => {
       // draw(context);
       console.log(`Redraw duration : ${performance.now() - startTime} ms`);
     };
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 1) return; // Vérifie que le bouton du milieu est enfoncé
 
       let startX = e.clientX;
       let startY = e.clientY;
 
-      const handleMouseMove = (moveEvent) => {
+      const handleMouseMove = (moveEvent: MouseEvent) => {
         const dx = moveEvent.clientX - startX;
         const dy = moveEvent.clientY - startY;
 
         // Mise à jour des offsets
         offsetX += dx;
         offsetY += dy;
-        const bounds = data.exercise.bounds;
-        const maxOffsetX = canvasRef.current.width / 2 - bounds.xMin * scale;
+        const bounds = data.exercise!.bounds!;
+        const maxOffsetX = canvasRef.current!.width / 2 - bounds.xMin * scale;
         offsetX = Math.min(offsetX, maxOffsetX);
-        const minOffsetX = canvasRef.current.width / 2 - bounds.xMax * scale;
+        const minOffsetX = canvasRef.current!.width / 2 - bounds.xMax * scale;
         offsetX = Math.max(offsetX, minOffsetX);
-        const maxOffsetY = canvasRef.current.height / 2 - bounds.yMin * scale;
+        const maxOffsetY = canvasRef.current!.height / 2 - bounds.yMin * scale;
         offsetY = Math.min(offsetY, maxOffsetY);
-        const minOffsetY = canvasRef.current.height / 2 - bounds.yMax * scale;
+        const minOffsetY = canvasRef.current!.height / 2 - bounds.yMax * scale;
         offsetY = Math.max(offsetY, minOffsetY);
         // draw(context);
 
@@ -213,30 +220,27 @@ const CanvasComponent = ({ data }) => {
       window.addEventListener("mouseup", handleMouseUp);
     };
 
-    const handleMouseMoveLatLong = (event) =>
+    const handleMouseMoveLatLong = (event: MouseEvent) =>
       (pos.current = [fromX(event.clientX), fromY(event.clientY)]);
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
-    canvasRef.current.addEventListener("wheel", handleZoom);
-    canvasRef.current.addEventListener("mousedown", handleMouseDown);
-    canvasRef.current.addEventListener("mousemove", handleMouseMoveLatLong);
+    canvas.addEventListener("wheel", handleZoom);
+    canvas.addEventListener("mousedown", handleMouseDown);
+    canvas.addEventListener("mousemove", handleMouseMoveLatLong);
     console.log("requestAnimationFrame");
     requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
-      if (canvasRef.current) {
-        canvasRef.current.removeEventListener("wheel", handleZoom);
-        canvasRef.current.removeEventListener("mousedown", handleMouseDown);
-        canvasRef.current.removeEventListener(
-          "mousemove",
-          handleMouseMoveLatLong
-        );
+      if (canvas) {
+        canvas.removeEventListener("wheel", handleZoom);
+        canvas.removeEventListener("mousedown", handleMouseDown);
+        canvas.removeEventListener("mousemove", handleMouseMoveLatLong);
       }
     };
   }, [data]); // Re-rend uniquement lorsque `data` change
 
-  const updateVisibility = (newVisibility) => {
+  const updateVisibility = (newVisibility: VisibilityState) => {
     Object.assign(visibility.current, newVisibility);
     let nb = 0;
     const airways = newVisibility.airways;
