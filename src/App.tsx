@@ -1,4 +1,4 @@
-import { useState } from "react";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import SimulationList from "@/components/SimulationList";
 import ExerciseList from "@/components/ExerciseList";
@@ -8,6 +8,7 @@ import "./App.css";
 function App() {
   return (
     <>
+      <ThemeSwitcher />
       <Router>
         <Routes>
           <Route path="/" element={<SimulationList />} />
