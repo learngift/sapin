@@ -96,6 +96,11 @@ Tout est prét pour commencer à coder.
 `npm install  react-router-dom`
 Ajout des compasants et des données (static/api)
 
+##Step 5: add dark mode
+
+##Step 6: add ToolBar
+npx shadcn@canary add dropdown-menu button avatar breadcrumb
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

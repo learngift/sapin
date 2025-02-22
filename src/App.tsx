@@ -1,15 +1,15 @@
-import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import SimulationList from "@/components/SimulationList";
 import ExerciseList from "@/components/ExerciseList";
+import TopBar from "@/components/TopBar";
 import ExerciseVisualization from "@/components/ExerciseVisualization";
 import "./App.css";
 
 function App() {
   return (
     <>
-      <ThemeSwitcher />
       <Router>
+        <TopBar />
         <Routes>
           <Route path="/" element={<SimulationList />} />
           <Route path="/simulation/:simulationId" element={<ExerciseList />} />
