@@ -251,6 +251,8 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     console.log(`count=${nb}`);
   };
 
+  //const sty = { height: "calc(100vh - 6.5rem)" };
+  //style={sty}
   return (
     <>
       <Button
@@ -262,7 +264,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         ☰
       </Button>
       <div
-        className={`fixed top-16 left-0 h-full w-48 bg-white dark:bg-gray-900 shadow-lg p-2 space-y-3 mt-8 transition-transform duration-300 ${
+        className={`fixed top-16 left-0 w-48 h-[calc(100%-6.5rem)] bg-white dark:bg-gray-900 shadow-lg p-2 space-y-3 mt-8 transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } z-40`}
       >
