@@ -1,5 +1,6 @@
-import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "./AuthProvider";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -13,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ThemeSwitcher from "./ThemeSwitcher"; // Le bouton de changement de thème
@@ -37,9 +39,26 @@ const Sapin = () => (
   </svg>
 );
 
+const getSHA256Hash = async (email: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(email.trim().toLowerCase());
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+};
+export const getGravatarUrl = async (
+  email: string,
+  size: number = 80
+): Promise<string> => {
+  const hash = await getSHA256Hash(email);
+  return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=identicon`;
+};
+
 const TopBar: React.FC = () => {
   // Simuler l’état de connexion de l’utilisateur (pour l'exemple)
-  const [isLoggedIn, setIsLoggedIn] = React.useState(true);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const location = useLocation();
   const pathSegments = location.pathname
     .split("/")
@@ -47,12 +66,24 @@ const TopBar: React.FC = () => {
   console.log(pathSegments);
   const handleLogout = () => {
     console.log("Déconnexion");
-    setIsLoggedIn(false);
+    logout();
+    navigate("/login");
   };
 
   const handleChangePassword = () => {
     console.log("Changement de mot de passe");
   };
+
+  useEffect(() => {
+    const fetchGravatar = async () => {
+      if (user) {
+        const url = await getGravatarUrl(user.email, 40);
+        setAvatarUrl(url);
+      }
+    };
+
+    fetchGravatar();
+  }, [user]);
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-transparent z-50 backdrop-blur-[3px] border-b border-gray-200 dark:border-gray-700">
@@ -95,28 +126,24 @@ const TopBar: React.FC = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://i.pravatar.cc/40" alt="Avatar" />
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt="Avatar" />}
                   <AvatarFallback>JD</AvatarFallback>
                 </Avatar>
-                {isLoggedIn ? "Mon profil" : "Se connecter"}
               </Button>
             </DropdownMenuTrigger>
-            {isLoggedIn ? (
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleChangePassword}>
-                  Modifier le mot de passe
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                  Se déconnecter
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            ) : (
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => console.log("Connexion")}>
-                  Connexion
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            )}
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                disabled
+                className="font-semibold text-sky-600 dark:text-sky-300 cursor-default justify-center"
+              >
+                {user.name}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleChangePassword}>
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>

@@ -101,6 +101,8 @@ Ajout des compasants et des données (static/api)
 ##Step 6: add ToolBar
 npx shadcn@canary add dropdown-menu button avatar breadcrumb
 
+##Step 7: add login/logout
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
