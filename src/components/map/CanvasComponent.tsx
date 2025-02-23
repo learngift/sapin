@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, RefObject } from "react";
-import { DataState, VisibilityState } from "@/utils/types";
+import { DataStateR, VisibilityState } from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import SideBar from "./SideBar";
 
@@ -58,13 +58,13 @@ function fromY(y: number): number {
 }
 
 interface CanvasComponentProps {
-  data: DataState;
+  data: DataStateR;
 }
 
 const CanvasComponent = ({ data }: CanvasComponentProps) => {
   //const [fps, setFps] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-  const airways = Object.keys(data.airways ?? {});
+  const airways = Object.keys(data.airways);
   console.log("airways", data.airways);
   const visibility = useRef<VisibilityState>({
     airways: Object.assign({}, ...airways.map((k) => ({ [k]: true }))),
@@ -79,7 +79,6 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     if (!context) return;
 
     const resizeCanvas = () => {
-      if (!data.exercise?.bounds) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       [refScale, refOffsetX, refOffsetY] = calculateScaleAndOffset(
@@ -98,23 +97,23 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     const draw = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (data?.geo_pts?.proj) {
+      if (data.geo_pts.proj) {
         const triangleChar = "▲";
         ctx.fillStyle = "blue";
         ctx.font = `10px sans-serif`;
         const pts = data.geo_pts;
         for (const k in pts.nav) {
-          const [x, y] = pts.proj![k];
+          const [x, y] = pts.proj[k];
           ctx.fillText(triangleChar, toX(x), toY(y));
         }
         for (const k in pts.nav) {
-          const [x, y] = pts.proj![k];
+          const [x, y] = pts.proj[k];
           ctx.fillText(k, toX(x) + 8, toY(y) - 5);
         }
         ctx.fillStyle = "black";
-        const latLong = data.exercise!.proj!.stereo2geo(pos.current);
+        const latLong = data.exercise.proj.stereo2geo(pos.current);
         ctx.fillText(
-          `${data.exercise!.proj!.formatLatLon(latLong)}   ${fps.current} fps`,
+          `${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`,
           10,
           ctx.canvas.height - 10
         );
@@ -131,8 +130,8 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
             if (visibility.current.airways[k] === false) continue;
             const airway = data.airways[k];
             for (let i = 0; i < airway.length; i++) {
-              if (airway[i] in pts.proj!) {
-                const [x, y] = pts.proj![airway[i]];
+              if (airway[i] in pts.proj) {
+                const [x, y] = pts.proj[airway[i]];
                 if (i == 0) {
                   ctx.moveTo(toX(x), toY(y));
                 } else {
@@ -196,7 +195,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         // Mise à jour des offsets
         offsetX += dx;
         offsetY += dy;
-        const bounds = data.exercise!.bounds!;
+        const bounds = data.exercise.bounds;
         const maxOffsetX = canvasRef.current!.width / 2 - bounds.xMin * scale;
         offsetX = Math.min(offsetX, maxOffsetX);
         const minOffsetX = canvasRef.current!.width / 2 - bounds.xMax * scale;

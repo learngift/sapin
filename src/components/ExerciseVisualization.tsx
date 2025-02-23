@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Projection from "@/utils/Projection";
 import CanvasComponent from "@/components/map/CanvasComponent";
-import { DataState } from "@/utils/types";
+import { DataState, DataStateR } from "@/utils/types";
 
 type DataKey =
   | "exercise"
@@ -199,7 +199,7 @@ function ExerciseVisualization() {
     <>
       {progress.flights === "finished" ? (
         // Afficher uniquement le canvas lorsque le chargement est terminé
-        <CanvasComponent data={data} />
+        <CanvasComponent data={data as DataStateR} />
       ) : (
         // Afficher l'état de progression si le chargement n'est pas terminé
         <div>
