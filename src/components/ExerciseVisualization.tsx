@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Projection from "@/utils/Projection";
-import CanvasComponent from "@/components/CanvasComponent";
+import CanvasComponent from "@/components/map/CanvasComponent";
 import { DataState } from "@/utils/types";
 
 type DataKey =

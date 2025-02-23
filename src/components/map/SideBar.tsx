@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface Visibility {
   airways: Record<string, boolean>; // Dictionnaire des airways cochés
@@ -8,15 +7,9 @@ interface Visibility {
 interface SidebarProps {
   visibility: Visibility;
   updateVisibility: (newVisibility: Visibility) => void;
-  onClose: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  visibility,
-  updateVisibility,
-  onClose,
-}) => {
-  const navigate = useNavigate();
+const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
   const [selectedAirways, setSelectedAirways] = useState<
     Record<string, boolean>
   >(visibility.airways);
@@ -51,25 +44,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div
-      style={{
-        width: "250px",
-        height: "100vh",
-        position: "fixed",
-        top: 40,
-        left: 0,
-        background: "#f4f4f4",
-        borderRight: "1px solid #ddd",
-        padding: "10px",
-        overflowY: "auto",
-        zIndex: 999,
-      }}
-    >
-      <button onClick={onClose} style={{ marginBottom: "10px" }}>
-        Close
-      </button>
-      <button onClick={() => navigate("/exercises")}>Exercises</button>
-      <ul>
+    <>
+      <ul className="space-y-2">
         <li>
           <button>Nav Points</button>
         </li>
@@ -108,43 +84,44 @@ const Sidebar: React.FC<SidebarProps> = ({
         </li>
       </ul>
       {isAirwaysDialogOpen && (
-        <div
-          style={{
-            width: "250px",
-            height: "100vh",
-            position: "fixed",
-            top: 0,
-            left: 0,
-            background: "#f4f4f4",
-            borderRight: "1px solid #ddd",
-            padding: "10px",
-            overflowY: "auto",
-            zIndex: 999,
-          }}
-        >
-          <h3>Airways</h3>
-          <button onClick={handleSelectAll}>Select All</button>
-          <button onClick={handleDeselectAll}>Deselect All</button>
-          <button onClick={handleCloseAirwaysDialog}>Close</button>
+        <div className="fixed top-0 left-0 h-full w-80 bg-white dark:bg-gray-900 shadow-lg p-4 z-50 overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-4">Airways</h3>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleSelectAll}
+          >
+            Select All
+          </button>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            onClick={handleDeselectAll}
+          >
+            Deselect All
+          </button>
+          <button
+            className="ml-auto px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+            onClick={handleCloseAirwaysDialog}
+          >
+            Close
+          </button>
           <ul>
             {Object.entries(selectedAirways).map(([k, v]) => (
-              <li key={k}>
-                <label>
-                  <input
-                    type="checkbox"
-                    onChange={() => handleCheckboxChange(k)}
-                    checked={v}
-                  />
-                  {k}
-                </label>
+              <li key={k} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  onChange={() => handleCheckboxChange(k)}
+                  checked={v}
+                  className="accent-blue-500"
+                />
+                <label>{k}</label>
               </li>
             ))}
           </ul>
           <br />
         </div>
       )}
-    </div>
+    </>
   );
 };
 
-export default Sidebar;
+export default SideBar;

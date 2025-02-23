@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, RefObject } from "react";
 import { DataState, VisibilityState } from "@/utils/types";
-import Sidebar from "./Sidebar";
+import { Button } from "@/components/ui/button";
+import SideBar from "./SideBar";
 
 interface Bounds {
   xMin: number;
@@ -252,40 +253,27 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        style={{
-          position: "absolute",
-          top: "10px",
-          left: "10px",
-          background: "none",
-          border: "none",
-          fontSize: "24px",
-          cursor: "pointer",
-          zIndex: 1000,
-        }}
+        variant="ghost"
+        size="icon"
+        className="fixed top-16 left-4 z-50 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 shadow-md"
       >
         ☰
-      </button>
-      {isSidebarOpen && (
-        <Sidebar
+      </Button>
+      <div
+        className={`fixed top-16 left-0 h-full w-48 bg-white dark:bg-gray-900 shadow-lg p-2 space-y-3 mt-8 transition-transform duration-300 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } z-40`}
+      >
+        <SideBar
           visibility={visibility.current}
           updateVisibility={updateVisibility}
-          onClose={() => setIsSidebarOpen(false)}
         />
-      )}
+      </div>
       <canvas
         ref={canvasRef}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          border: "none",
-          margin: 0,
-          padding: 0,
-        }}
+        className="absolute top-0 left-0 w-full h-full border-none m-0 p-0"
       />
     </>
   );
