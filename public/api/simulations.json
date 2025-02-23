@@ -1,2 +1,142 @@
-[{"name":"TST19A","release":"ACE2019A_RH8","description":"Simulation de test"},
-{"name":"VERIF19A","release":"ACE2019A","description":"Test and Support Verification exercises"}]
+[
+  {
+    "name": "TST19A",
+    "release": "ACE2019A_RH8",
+    "description": "Simulation de test"
+  },
+  {
+    "name": "VERIF19A",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises. Blablabla et patati et patata"
+  },
+  {
+    "name": "BIDON_01",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_02",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_03",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_15",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_16",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_17",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_18",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_19",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_20",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_21",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_04",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_05",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_06",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_07",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_08",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises. Tel est de mon amour l'aveuglement funeste. Vous le savez, madame et le destin d'Oreste est de venir sans cesse adorer vos attraits."
+  },
+  {
+    "name": "BIDON_09",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_10",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_11",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_12",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_13",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_14",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_22",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_23",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_24",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_25",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  },
+  {
+    "name": "BIDON_26",
+    "release": "ACE2019A",
+    "description": "Test and Support Verification exercises"
+  }
+]
