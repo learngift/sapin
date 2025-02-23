@@ -11,12 +11,7 @@ interface Bounds {
 }
 const zoomStep = [1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32];
 let zoomIndex = 0;
-let refScale: number,
-  refOffsetX: number,
-  refOffsetY: number,
-  scale: number,
-  offsetX: number,
-  offsetY: number;
+let refScale: number, refOffsetX: number, refOffsetY: number, scale: number, offsetX: number, offsetY: number;
 
 function calculateScaleAndOffset(
   bounds: Bounds,
@@ -30,18 +25,10 @@ function calculateScaleAndOffset(
 
   if (ratioData > ratioCanvas) {
     const scale = canvasWidth / dataWidth;
-    return [
-      scale,
-      -bounds.xMin * scale,
-      (canvasHeight - dataHeight * scale) / 2 - bounds.yMin * scale,
-    ];
+    return [scale, -bounds.xMin * scale, (canvasHeight - dataHeight * scale) / 2 - bounds.yMin * scale];
   } else {
     const scale = canvasHeight / dataHeight;
-    return [
-      scale,
-      (canvasWidth - dataWidth * scale) / 2 - bounds.xMin * scale,
-      -bounds.yMin * scale,
-    ];
+    return [scale, (canvasWidth - dataWidth * scale) / 2 - bounds.xMin * scale, -bounds.yMin * scale];
   }
 }
 function toX(xNm: number): number {
@@ -67,7 +54,15 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
   const airways = Object.keys(data.airways);
   console.log("airways", data.airways);
   const visibility = useRef<VisibilityState>({
+    navpts: Object.assign({}, ...Object.keys(data.geo_pts.nav).map((k) => ({ [k]: true }))),
+    outls: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: true }))),
+    airports: {},
+    sids: Object.assign({}, ...Object.keys(data.sids).map((k) => ({ [k]: true }))),
+    stars: Object.assign({}, ...Object.keys(data.stars).map((k) => ({ [k]: true }))),
     airways: Object.assign({}, ...airways.map((k) => ({ [k]: true }))),
+    sectors: {},
+    volumes: Object.assign({}, ...Object.keys(data.volumes).map((k) => ({ [k]: true }))),
+    flights: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: true }))),
   });
   const pos = useRef<[number, number]>([0, 0]);
   const fps = useRef<number>(0);
@@ -162,9 +157,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       const mouseY = event.offsetY;
 
       const newZoom =
-        event.deltaY < 0
-          ? Math.min(zoomIndex + 1, zoomStep.length - 1)
-          : Math.max(zoomIndex - 1, 0);
+        event.deltaY < 0 ? Math.min(zoomIndex + 1, zoomStep.length - 1) : Math.max(zoomIndex - 1, 0);
 
       if (newZoom === zoomIndex) return;
       zoomIndex = newZoom;
@@ -267,15 +260,9 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } z-40`}
       >
-        <SideBar
-          visibility={visibility.current}
-          updateVisibility={updateVisibility}
-        />
+        <SideBar visibility={visibility.current} updateVisibility={updateVisibility} />
       </div>
-      <canvas
-        ref={canvasRef}
-        className="absolute top-0 left-0 w-full h-full border-none m-0 p-0"
-      />
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full border-none m-0 p-0" />
     </>
   );
 };
