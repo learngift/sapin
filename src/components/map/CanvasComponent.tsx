@@ -13,11 +13,7 @@ const zoomStep = [1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32];
 let zoomIndex = 0;
 let refScale: number, refOffsetX: number, refOffsetY: number, scale: number, offsetX: number, offsetY: number;
 
-function calculateScaleAndOffset(
-  bounds: Bounds,
-  canvasWidth: number,
-  canvasHeight: number
-): [number, number, number] {
+function calculateScaleAndOffset(bounds: Bounds, canvasWidth: number, canvasHeight: number): [number, number, number] {
   const dataWidth = bounds.xMax - bounds.xMin;
   const dataHeight = bounds.yMax - bounds.yMin;
   const ratioData = dataWidth / dataHeight;
@@ -54,15 +50,21 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
   const airways = Object.keys(data.airways);
   console.log("airways", data.airways);
   const visibility = useRef<VisibilityState>({
-    navpts: Object.assign({}, ...Object.keys(data.geo_pts.nav).map((k) => ({ [k]: true }))),
-    outls: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: true }))),
-    airports: {},
-    sids: Object.assign({}, ...Object.keys(data.sids).map((k) => ({ [k]: true }))),
-    stars: Object.assign({}, ...Object.keys(data.stars).map((k) => ({ [k]: true }))),
-    airways: Object.assign({}, ...airways.map((k) => ({ [k]: true }))),
-    sectors: {},
-    volumes: Object.assign({}, ...Object.keys(data.volumes).map((k) => ({ [k]: true }))),
-    flights: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: true }))),
+    navpts: {
+      showLabels: false,
+      items: Object.assign({}, ...Object.keys(data.geo_pts.nav).map((k) => ({ [k]: true }))),
+    },
+    outls: {
+      showLabels: false,
+      items: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: true }))),
+    },
+    airports: { showLabels: false, items: {} },
+    sids: { showLabels: false, items: Object.assign({}, ...Object.keys(data.sids).map((k) => ({ [k]: true }))) },
+    stars: { showLabels: false, items: Object.assign({}, ...Object.keys(data.stars).map((k) => ({ [k]: true }))) },
+    airways: { showLabels: false, items: Object.assign({}, ...airways.map((k) => ({ [k]: true }))) },
+    sectors: { showLabels: false, items: {} },
+    volumes: { showLabels: false, items: Object.assign({}, ...Object.keys(data.volumes).map((k) => ({ [k]: true }))) },
+    flights: { showLabels: false, items: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: true }))) },
   });
   const pos = useRef<[number, number]>([0, 0]);
   const fps = useRef<number>(0);
@@ -76,11 +78,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      [refScale, refOffsetX, refOffsetY] = calculateScaleAndOffset(
-        data.exercise.bounds,
-        canvas.width,
-        canvas.height
-      );
+      [refScale, refOffsetX, refOffsetY] = calculateScaleAndOffset(data.exercise.bounds, canvas.width, canvas.height);
       scale = refScale * zoomStep[zoomIndex];
       if (zoomIndex === 0) {
         offsetX = refOffsetX;
@@ -91,57 +89,101 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
 
     const draw = (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      if (data.geo_pts.proj) {
-        const triangleChar = "▲";
-        ctx.fillStyle = "blue";
-        ctx.font = `10px sans-serif`;
-        const pts = data.geo_pts;
-        for (const k in pts.nav) {
+      const dm = document.documentElement.classList.contains("dark");
+      const cp = [
+        "#5C5757", // 0
+        "#767879",
+        "#767879",
+        "#6B6B6B",
+        "#767879", // 4
+        "#63575C",
+        "#7A7376",
+        "#7A7376",
+        "#BFBFBF", // 8
+        "#7A7376",
+        "#BFBFBF",
+        "#7A7372",
+        "#7A7372", // 12
+        "#096FF",
+        "#FF00",
+        "#FFFF0",
+        "#FFFFFF", // 16
+      ];
+      const fpsColor = dm ? cp[16] : cp[14];
+      const geoPtsSymbolColor = dm ? cp[7] : cp[0];
+      const airwayColor = dm ? cp[6] : cp[5];
+      const sidColor = dm ? cp[11] : cp[5];
+      const starColor = dm ? cp[12] : cp[5];
+      //const runwayColor = dm ? cp[13] : cp[5];
+      const volumeColor = dm ? cp[13] : cp[5];
+      const triangleChar = "▲";
+      ctx.fillStyle = geoPtsSymbolColor;
+      ctx.font = `10px sans-serif`;
+      const pts = data.geo_pts;
+      for (const k in pts.nav) {
+        if (visibility.current.navpts.items[k]) {
           const [x, y] = pts.proj[k];
           ctx.fillText(triangleChar, toX(x), toY(y));
         }
+      }
+      if (visibility.current.navpts.showLabels)
         for (const k in pts.nav) {
-          const [x, y] = pts.proj[k];
-          ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          if (visibility.current.navpts.items[k]) {
+            const [x, y] = pts.proj[k];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          }
         }
-        ctx.fillStyle = "black";
-        const latLong = data.exercise.proj.stereo2geo(pos.current);
-        ctx.fillText(
-          `${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`,
-          10,
-          ctx.canvas.height - 10
-        );
+      ctx.fillStyle = fpsColor;
+      const latLong = data.exercise.proj.stereo2geo(pos.current);
+      ctx.fillText(`${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`, 10, ctx.canvas.height - 2);
 
-        // console.log(`draw ${toX(x)} ${toY(y)}`);
-        //ctx.beginPath();
-        //ctx.arc(x, y, 5, 0, 2 * Math.PI);
-        //ctx.fill();
-        if (data.airways) {
-          ctx.strokeStyle = "#F00";
-          ctx.beginPath();
-          let first_log = false;
-          for (const k in data.airways) {
-            if (visibility.current.airways[k] === false) continue;
-            const airway = data.airways[k];
-            for (let i = 0; i < airway.length; i++) {
-              if (airway[i] in pts.proj) {
-                const [x, y] = pts.proj[airway[i]];
-                if (i == 0) {
-                  ctx.moveTo(toX(x), toY(y));
-                } else {
-                  ctx.lineTo(toX(x), toY(y));
-                }
-              } else if (first_log) {
-                first_log = false;
-                console.log(airway);
-                console.log(`point ${airway[i]} not found`);
-              }
+      // console.log(`draw ${toX(x)} ${toY(y)}`);
+      //ctx.beginPath();
+      //ctx.arc(x, y, 5, 0, 2 * Math.PI);
+      //ctx.fill();
+      const drawLineOfPoints = (way: string[]) => {
+        for (let i = 0; i < way.length; i++) {
+          if (way[i] in pts.proj) {
+            const [x, y] = pts.proj[way[i]];
+            if (i == 0) {
+              ctx.moveTo(toX(x), toY(y));
+            } else {
+              ctx.lineTo(toX(x), toY(y));
             }
           }
-          ctx.stroke();
+        }
+      };
+      // Airways
+      ctx.strokeStyle = airwayColor;
+      ctx.beginPath();
+      for (const k in data.airways) {
+        if (visibility.current.airways.items[k]) drawLineOfPoints(data.airways[k]);
+      }
+      ctx.stroke();
+      // SIDs
+      ctx.strokeStyle = sidColor;
+      ctx.beginPath();
+      for (const k in data.sids) {
+        if (visibility.current.sids.items[k]) drawLineOfPoints(data.sids[k].points);
+      }
+      ctx.stroke();
+      // STARs
+      ctx.strokeStyle = starColor;
+      ctx.beginPath();
+      for (const k in data.stars) {
+        if (visibility.current.stars.items[k]) drawLineOfPoints(data.stars[k].points.map((p) => p.point_name));
+      }
+      ctx.stroke();
+      // Volumes
+      ctx.strokeStyle = volumeColor;
+      ctx.beginPath();
+      for (const k in data.volumes) {
+        if (visibility.current.volumes.items[k]) {
+          drawLineOfPoints(data.volumes[k].points);
+          ctx.closePath();
         }
       }
+      ctx.stroke();
     };
     let lastTime = 0;
     const render = (time: number) => {
@@ -156,8 +198,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       const mouseX = event.offsetX;
       const mouseY = event.offsetY;
 
-      const newZoom =
-        event.deltaY < 0 ? Math.min(zoomIndex + 1, zoomStep.length - 1) : Math.max(zoomIndex - 1, 0);
+      const newZoom = event.deltaY < 0 ? Math.min(zoomIndex + 1, zoomStep.length - 1) : Math.max(zoomIndex - 1, 0);
 
       if (newZoom === zoomIndex) return;
       zoomIndex = newZoom;
@@ -213,8 +254,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       window.addEventListener("mouseup", handleMouseUp);
     };
 
-    const handleMouseMoveLatLong = (event: MouseEvent) =>
-      (pos.current = [fromX(event.clientX), fromY(event.clientY)]);
+    const handleMouseMoveLatLong = (event: MouseEvent) => (pos.current = [fromX(event.clientX), fromY(event.clientY)]);
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
     canvas.addEventListener("wheel", handleZoom);
@@ -236,7 +276,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
   const updateVisibility = (newVisibility: VisibilityState) => {
     Object.assign(visibility.current, newVisibility);
     let nb = 0;
-    const airways = newVisibility.airways;
+    const airways = newVisibility.airways.items;
     for (const airway in airways) {
       if (airways[airway]) nb++;
     }
@@ -256,7 +296,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         ☰
       </Button>
       <div
-        className={`fixed top-16 left-0 w-48 h-[calc(100%-6.5rem)] bg-white dark:bg-gray-900 shadow-lg p-2 space-y-3 mt-8 transition-transform duration-300 ${
+        className={`fixed top-16 left-0 w-48 h-[calc(100%-6.9rem)] bg-white dark:bg-gray-900 shadow-lg p-2 space-y-3 mt-8 transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } z-40`}
       >

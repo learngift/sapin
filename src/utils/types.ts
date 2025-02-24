@@ -151,14 +151,18 @@ export interface DataStateR {
   flights: FlightEntryR[];
 }
 
+export interface VisibilityCategory {
+  items: Record<string, boolean>;
+  showLabels: boolean;
+}
 export interface VisibilityState {
-  navpts: Record<string, boolean>;
-  outls: Record<string, boolean>;
-  airports: Record<string, boolean>;
-  airways: Record<string, boolean>;
-  sids: Record<string, boolean>;
-  stars: Record<string, boolean>;
-  sectors: Record<string, boolean>;
-  volumes: Record<string, boolean>;
-  flights: Record<string, boolean>;
+  navpts: VisibilityCategory;
+  outls: VisibilityCategory;
+  airports: VisibilityCategory;
+  airways: VisibilityCategory;
+  sids: VisibilityCategory;
+  stars: VisibilityCategory;
+  sectors: VisibilityCategory;
+  volumes: VisibilityCategory;
+  flights: VisibilityCategory;
 }
