@@ -6,14 +6,7 @@ import Projection from "@/utils/Projection";
 import CanvasComponent from "@/components/map/CanvasComponent";
 import { DataState, DataStateR } from "@/utils/types";
 
-type DataKey =
-  | "exercise"
-  | "geo_pts"
-  | "airways"
-  | "sids"
-  | "stars"
-  | "volumes"
-  | "flights";
+type DataKey = "exercise" | "geo_pts" | "airways" | "sids" | "stars" | "volumes" | "flights";
 
 type LoadStatus = "pending" | "loaded" | "finished" | "error" | "error parsing";
 
@@ -26,29 +19,16 @@ const dataModel: Record<DataKey, { label: string; api: string }> = {
   volumes: { label: "Volumes", api: "volumes.json" },
   flights: { label: "Flights", api: "flights.json" },
 };
-const dataList: DataKey[] = [
-  "exercise",
-  "geo_pts",
-  "airways",
-  "sids",
-  "stars",
-  "volumes",
-  "flights",
-];
+const dataList: DataKey[] = ["exercise", "geo_pts", "airways", "sids", "stars", "volumes", "flights"];
 
 function ExerciseVisualization() {
   const { simulationId, exerciseId } = useParams(); // Paramètres de l'URL
   const [progress, setProgress] = useState<Record<DataKey, LoadStatus>>(
-    Object.fromEntries(dataList.map((key) => [key, "pending"])) as Record<
-      DataKey,
-      LoadStatus
-    >
+    Object.fromEntries(dataList.map((key) => [key, "pending"])) as Record<DataKey, LoadStatus>
   );
 
   const [data, setData] = useState<DataState>(
-    Object.fromEntries(
-      dataList.map((key) => [key, null])
-    ) as unknown as DataState
+    Object.fromEntries(dataList.map((key) => [key, null])) as unknown as DataState
   );
 
   // Fonction pour charger un fichier JSON
@@ -58,25 +38,19 @@ function ExerciseVisualization() {
     const filename = dataModel[key].api;
     try {
       // delay for demo effect
-      const delay = (ms: number) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
+      const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      const response = await fetch(
-        `/api/${simulationId}/${exerciseId}/${filename}`
-      );
+      const response = await fetch(`/api/${simulationId}/${exerciseId}/${filename}`);
       if (!response.ok) {
         throw new Error(`Erreur lors du chargement de ${filename}`);
       }
-      await delay(Math.random() * (1000 - 200) + 200);
+      //await delay(Math.random() * (1000 - 200) + 200);
+      await delay(Math.random() * (100 - 20) + 20);
       const json = await response.json();
       console.log(`setData ${key}`);
-      setData((prevData) =>
-        prevData[key] === null ? { ...prevData, [key]: json } : prevData
-      );
+      setData((prevData) => (prevData[key] === null ? { ...prevData, [key]: json } : prevData));
       console.log(`setProgress ${key} loaded`);
-      setProgress((prev) =>
-        prev[key] === "pending" ? { ...prev, [key]: "loaded" } : prev
-      );
+      setProgress((prev) => (prev[key] === "pending" ? { ...prev, [key]: "loaded" } : prev));
     } catch (error) {
       console.error(error);
       console.error(filename);
@@ -101,32 +75,23 @@ function ExerciseVisualization() {
       if (progress.flights === "loaded" && progress.volumes === "finished") {
         //
         console.log(`setProgress flights finished`);
+        for (const f of data.flights!) {
+          f.points.points = f.points.points.filter((p) => p !== null);
+        }
         setProgress((prev) => ({ ...prev, flights: "finished" }));
-      } else if (
-        progress.volumes === "loaded" &&
-        progress.stars === "finished"
-      ) {
+      } else if (progress.volumes === "loaded" && progress.stars === "finished") {
         console.log(`setProgress volumes finished`);
         setProgress((prev) => ({ ...prev, volumes: "finished" }));
       } else if (progress.stars === "loaded" && progress.sids === "finished") {
         console.log(`setProgress stars finished`);
         setProgress((prev) => ({ ...prev, stars: "finished" }));
-      } else if (
-        progress.sids === "loaded" &&
-        progress.airways === "finished"
-      ) {
+      } else if (progress.sids === "loaded" && progress.airways === "finished") {
         console.log(`setProgress sids finished`);
         setProgress((prev) => ({ ...prev, sids: "finished" }));
-      } else if (
-        progress.airways === "loaded" &&
-        progress.geo_pts === "finished"
-      ) {
+      } else if (progress.airways === "loaded" && progress.geo_pts === "finished") {
         console.log(`setProgress airways finished`);
         setProgress((prev) => ({ ...prev, airways: "finished" }));
-      } else if (
-        progress.geo_pts === "loaded" &&
-        progress.exercise === "finished"
-      ) {
+      } else if (progress.geo_pts === "loaded" && progress.exercise === "finished") {
         let projection: Projection;
         const pc = data.exercise?.proj_center;
         if (pc) {
@@ -140,15 +105,10 @@ function ExerciseVisualization() {
         } else {
           projection = new Projection();
         }
-        const all_pts = [
-          ...Object.entries(data.geo_pts?.nav ?? {}),
-          ...Object.entries(data.geo_pts?.outl ?? {}),
-        ];
+        const all_pts = [...Object.entries(data.geo_pts?.nav ?? {}), ...Object.entries(data.geo_pts?.outl ?? {})];
         const new_geo_pts = {
           ...data.geo_pts,
-          proj: Object.fromEntries(
-            all_pts.map(([k, v]) => [k, projection.geo2stereo(v)])
-          ),
+          proj: Object.fromEntries(all_pts.map(([k, v]) => [k, projection.geo2stereo(v)])),
         };
         console.log(new_geo_pts);
         const bounds = Object.values(new_geo_pts.proj).reduce(

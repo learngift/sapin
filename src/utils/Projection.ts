@@ -6,10 +6,10 @@ export default class Projection {
   // Earth radius expressed in Nm
   static earthRadius = 3437.746770785;
 
-  private latitudeRadians: number;
-  private sinusLatitude: number;
-  private cosinusLatitude: number;
-  private longitudeRadians: number;
+  private latitudeRadians!: number;
+  private sinusLatitude!: number;
+  private cosinusLatitude!: number;
+  private longitudeRadians!: number;
 
   /**
    * Default constructor creates a projection centered on Paris
@@ -37,12 +37,9 @@ export default class Projection {
     const clat = Math.cos(latRad);
     const cdlon = Math.cos(lonRad - this.longitudeRadians);
     const ratio =
-      (2.0 * Projection.earthRadius) /
-      (1.0 + slat * this.sinusLatitude + clat * this.cosinusLatitude * cdlon);
+      (2.0 * Projection.earthRadius) / (1.0 + slat * this.sinusLatitude + clat * this.cosinusLatitude * cdlon);
     const x = ratio * clat * Math.sin(lonRad - this.longitudeRadians);
-    const y =
-      -ratio *
-      (this.cosinusLatitude * slat - clat * this.sinusLatitude * cdlon);
+    const y = -ratio * (this.cosinusLatitude * slat - clat * this.sinusLatitude * cdlon);
     return [x, y];
   }
 
@@ -52,10 +49,7 @@ export default class Projection {
 
     const l_lat =
       (-y * Projection.earthRadius * this.cosinusLatitude +
-        2 *
-          Projection.earthRadius *
-          Projection.earthRadius *
-          this.sinusLatitude) /
+        2 * Projection.earthRadius * Projection.earthRadius * this.sinusLatitude) /
       (x * x + y * y + 4 * Projection.earthRadius * Projection.earthRadius);
     const latitudeRadians = Math.asin(4.0 * l_lat - this.sinusLatitude);
     const slat = Math.sin(latitudeRadians);
@@ -63,10 +57,7 @@ export default class Projection {
       this.longitudeRadians +
       Math.atan(
         (x * (slat + this.sinusLatitude)) /
-          (slat *
-            (2 * Projection.earthRadius * this.cosinusLatitude +
-              y * this.sinusLatitude) +
-            y)
+          (slat * (2 * Projection.earthRadius * this.cosinusLatitude + y * this.sinusLatitude) + y)
       );
 
     // variante de calcul proposée par chatgpt
@@ -82,11 +73,7 @@ export default class Projection {
 
   formatLatLon(latLong: [number, number]): string {
     const [latitude, longitude] = latLong;
-    const formatCoord = (
-      seconds: number,
-      positiveDir: string,
-      negativeDir: string
-    ) => {
+    const formatCoord = (seconds: number, positiveDir: string, negativeDir: string) => {
       const direction = seconds >= 0 ? positiveDir : negativeDir;
       const absSeconds = Math.abs(seconds);
       const degrees = Math.floor(absSeconds / 3600);

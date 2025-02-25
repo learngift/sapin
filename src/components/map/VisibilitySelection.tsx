@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { VisibilityCategory } from "@/utils/types";
 
 interface VisibilitySelectionProps {

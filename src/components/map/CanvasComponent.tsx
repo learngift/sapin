@@ -56,7 +56,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     },
     outls: {
       showLabels: false,
-      items: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: true }))),
+      items: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: false }))),
     },
     airports: { showLabels: false, items: {} },
     sids: { showLabels: false, items: Object.assign({}, ...Object.keys(data.sids).map((k) => ({ [k]: true }))) },
@@ -64,7 +64,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
     airways: { showLabels: false, items: Object.assign({}, ...airways.map((k) => ({ [k]: true }))) },
     sectors: { showLabels: false, items: {} },
     volumes: { showLabels: false, items: Object.assign({}, ...Object.keys(data.volumes).map((k) => ({ [k]: true }))) },
-    flights: { showLabels: false, items: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: true }))) },
+    flights: { showLabels: false, items: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: false }))) },
   });
   const pos = useRef<[number, number]>([0, 0]);
   const fps = useRef<number>(0);
@@ -102,10 +102,10 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         "#BFBFBF", // 8
         "#7A7376",
         "#BFBFBF",
-        "#7A7372",
-        "#7A7372", // 12
-        "#096FF",
-        "#FF00",
+        "#7AC372",
+        "#2020C2", // 12
+        "#63575C",
+        "#000000",
         "#FFFF0",
         "#FFFFFF", // 16
       ];
@@ -116,14 +116,36 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       const starColor = dm ? cp[12] : cp[5];
       //const runwayColor = dm ? cp[13] : cp[5];
       const volumeColor = dm ? cp[13] : cp[5];
+      const flightColor = dm ? cp[16] : cp[14];
       const triangleChar = "▲";
+
+      const pts = data.geo_pts;
+      // outls
+      ctx.fillStyle = volumeColor;
+      ctx.font = `7px sans-serif`;
+      for (const k in pts.outl) {
+        if (visibility.current.outls.items[k]) {
+          const [x, y] = pts.proj[k];
+          ctx.fillText(triangleChar, toX(x) - 3, toY(y) + 1);
+        }
+      }
+      if (visibility.current.outls.showLabels) {
+        ctx.font = `10px sans-serif`;
+        for (const k in pts.outl) {
+          if (visibility.current.outls.items[k]) {
+            const [x, y] = pts.proj[k];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          }
+        }
+      }
+
+      // Nav points
       ctx.fillStyle = geoPtsSymbolColor;
       ctx.font = `10px sans-serif`;
-      const pts = data.geo_pts;
       for (const k in pts.nav) {
         if (visibility.current.navpts.items[k]) {
           const [x, y] = pts.proj[k];
-          ctx.fillText(triangleChar, toX(x), toY(y));
+          ctx.fillText(triangleChar, toX(x) - 4, toY(y) + 2);
         }
       }
       if (visibility.current.navpts.showLabels)
@@ -133,6 +155,8 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
             ctx.fillText(k, toX(x) + 8, toY(y) - 5);
           }
         }
+
+      // lat long
       ctx.fillStyle = fpsColor;
       const latLong = data.exercise.proj.stereo2geo(pos.current);
       ctx.fillText(`${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`, 10, ctx.canvas.height - 2);
@@ -160,6 +184,19 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         if (visibility.current.airways.items[k]) drawLineOfPoints(data.airways[k]);
       }
       ctx.stroke();
+      if (visibility.current.airways.showLabels) {
+        ctx.fillStyle = airwayColor;
+        for (const k in data.airways) {
+          if (visibility.current.airways.items[k]) {
+            const ps = data.airways[k];
+            const [x, y] = pts.proj[ps[ps.length - 1]];
+            const [xx, yy] = pts.proj[ps[0]];
+            // display the name near the first point and near last point
+            ctx.fillText(k, toX(x) + 8, toY(y) - 10);
+            ctx.fillText(k, toX(xx) + 8, toY(yy) - 10);
+          }
+        }
+      }
       // SIDs
       ctx.strokeStyle = sidColor;
       ctx.beginPath();
@@ -167,6 +204,16 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         if (visibility.current.sids.items[k]) drawLineOfPoints(data.sids[k].points);
       }
       ctx.stroke();
+      if (visibility.current.sids.showLabels) {
+        ctx.fillStyle = sidColor;
+        for (const k in data.sids) {
+          if (visibility.current.sids.items[k]) {
+            const ps = data.sids[k].points;
+            const [x, y] = pts.proj[ps[ps.length - 1]];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 10);
+          }
+        }
+      }
       // STARs
       ctx.strokeStyle = starColor;
       ctx.beginPath();
@@ -174,16 +221,44 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         if (visibility.current.stars.items[k]) drawLineOfPoints(data.stars[k].points.map((p) => p.point_name));
       }
       ctx.stroke();
+      if (visibility.current.stars.showLabels) {
+        ctx.fillStyle = starColor;
+        for (const k in data.stars) {
+          if (visibility.current.stars.items[k]) {
+            const [x, y] = pts.proj[data.stars[k].points[0].point_name];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 10);
+          }
+        }
+      }
       // Volumes
       ctx.strokeStyle = volumeColor;
-      ctx.beginPath();
       for (const k in data.volumes) {
         if (visibility.current.volumes.items[k]) {
+          ctx.beginPath();
           drawLineOfPoints(data.volumes[k].points);
           ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      // flights
+      ctx.strokeStyle = flightColor;
+      ctx.beginPath();
+      for (const f of data.flights) {
+        if (visibility.current.flights.items[f.callsign]) {
+          drawLineOfPoints(f.points.points);
         }
       }
       ctx.stroke();
+      if (visibility.current.flights.showLabels) {
+        ctx.font = `12px sans-serif`;
+        ctx.fillStyle = flightColor;
+        for (const f of data.flights) {
+          if (visibility.current.flights.items[f.callsign]) {
+            const [x, y] = pts.proj[f.points.points[0]];
+            ctx.fillText(f.callsign, toX(x) + 8, toY(y) - 10);
+          }
+        }
+      }
     };
     let lastTime = 0;
     const render = (time: number) => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import VisibilitySelection from "@/components/map/VisibilitySelection";
-import { VisibilityState } from "@/utils/types";
+import { VisibilityState, VisibilityCategory } from "@/utils/types";
 
 interface SidebarProps {
   visibility: VisibilityState;
@@ -8,54 +8,53 @@ interface SidebarProps {
 }
 
 const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
-  const [selectedNavpts, setSelectedNavpts] = useState<Record<string, boolean>>(visibility.navpts);
-  const [selectedOutls, setSelectedOutls] = useState<Record<string, boolean>>(visibility.outls);
-  const [selectedAirports, setSelectedAirports] = useState<Record<string, boolean>>(visibility.airports);
-  const [selectedSids, setSelectedSids] = useState<Record<string, boolean>>(visibility.sids);
-  const [selectedStars, setSelectedStars] = useState<Record<string, boolean>>(visibility.stars);
-  const [selectedAirways, setSelectedAirways] = useState<Record<string, boolean>>(visibility.airways);
-  const [selectedSectors, setSelectedSectors] = useState<Record<string, boolean>>(visibility.sectors);
-  const [selectedVolumes, setSelectedVolumes] = useState<Record<string, boolean>>(visibility.volumes);
-  const [selectedFlights, setSelectedFlights] = useState<Record<string, boolean>>(visibility.flights);
+  const [selectedNavpts, setSelectedNavpts] = useState<VisibilityCategory>(visibility.navpts);
+  const [selectedOutls, setSelectedOutls] = useState<VisibilityCategory>(visibility.outls);
+  const [selectedAirports, setSelectedAirports] = useState<VisibilityCategory>(visibility.airports);
+  const [selectedSids, setSelectedSids] = useState<VisibilityCategory>(visibility.sids);
+  const [selectedStars, setSelectedStars] = useState<VisibilityCategory>(visibility.stars);
+  const [selectedAirways, setSelectedAirways] = useState<VisibilityCategory>(visibility.airways);
+  const [selectedSectors, setSelectedSectors] = useState<VisibilityCategory>(visibility.sectors);
+  const [selectedVolumes, setSelectedVolumes] = useState<VisibilityCategory>(visibility.volumes);
+  const [selectedFlights, setSelectedFlights] = useState<VisibilityCategory>(visibility.flights);
   const [openSelection, setOpenSelection] = useState<string>("");
 
-  const handleClick = (selection: string) => () =>
-    setOpenSelection(selection === openSelection ? "" : selection);
+  const handleClick = (selection: string) => () => setOpenSelection(selection === openSelection ? "" : selection);
   const handleClose = () => setOpenSelection("");
 
-  const handlesetSelectedNavpts = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedNavpts = (updated: VisibilityCategory): void => {
     setSelectedNavpts(updated);
     updateVisibility({ ...visibility, navpts: updated });
   };
-  const handlesetSelectedOutls = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedOutls = (updated: VisibilityCategory): void => {
     setSelectedOutls(updated);
     updateVisibility({ ...visibility, outls: updated });
   };
-  const handlesetSelectedAirports = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedAirports = (updated: VisibilityCategory): void => {
     setSelectedAirports(updated);
     updateVisibility({ ...visibility, airports: updated });
   };
-  const handlesetSelectedSids = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedSids = (updated: VisibilityCategory): void => {
     setSelectedSids(updated);
     updateVisibility({ ...visibility, sids: updated });
   };
-  const handlesetSelectedStars = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedStars = (updated: VisibilityCategory): void => {
     setSelectedStars(updated);
     updateVisibility({ ...visibility, stars: updated });
   };
-  const handlesetSelectedAirways = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedAirways = (updated: VisibilityCategory): void => {
     setSelectedAirways(updated);
     updateVisibility({ ...visibility, airways: updated });
   };
-  const handlesetSelectedSectors = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedSectors = (updated: VisibilityCategory): void => {
     setSelectedSectors(updated);
     updateVisibility({ ...visibility, sectors: updated });
   };
-  const handlesetSelectedVolumes = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedVolumes = (updated: VisibilityCategory): void => {
     setSelectedVolumes(updated);
     updateVisibility({ ...visibility, volumes: updated });
   };
-  const handlesetSelectedFlights = (updated: Record<string, boolean>): void => {
+  const handlesetSelectedFlights = (updated: VisibilityCategory): void => {
     setSelectedFlights(updated);
     updateVisibility({ ...visibility, flights: updated });
   };
@@ -125,12 +124,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
         />
       )}
       {openSelection === "sids" && (
-        <VisibilitySelection
-          title="Sids"
-          data={selectedSids}
-          setData={handlesetSelectedSids}
-          onClose={handleClose}
-        />
+        <VisibilitySelection title="Sids" data={selectedSids} setData={handlesetSelectedSids} onClose={handleClose} />
       )}
       {openSelection === "stars" && (
         <VisibilitySelection
