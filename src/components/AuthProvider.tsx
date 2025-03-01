@@ -16,9 +16,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
-  );
+  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -29,10 +27,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
+      const formData = new URLSearchParams();
+      formData.append("username", email);
+      formData.append("password", password);
       const response = await fetch("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" }, // json
+        body: formData, // JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const data = await response.json();
+      console.log(data);
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem("token", data.token);
@@ -50,9 +52,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    //await fetch("/api/logout", {
-    //  method: "POST",
-    //});
+    await fetch("/api/logout", {
+      method: "POST",
+    });
 
     setUser(null);
     setToken(null);
@@ -60,11 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("user");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ user, token, login, logout }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

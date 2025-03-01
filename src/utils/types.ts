@@ -35,26 +35,36 @@ export interface GeoPtsDataR {
   proj: Record<string, [number, number]>;
 }
 
+export interface AirportDataR {
+  latlong: [number, number];
+  proj: [number, number];
+}
+
 export interface AirwaysData {
   [airwayName: string]: string[];
 }
+
+export interface AirwaysEntryR {
+  points: string[];
+  tip: string;
+}
+
 export interface AirwaysDataR {
-  [airwayName: string]: string[];
+  [airwayName: string]: AirwaysEntryR;
 }
 
 export interface SidEntry {
   runway: string;
   points: string[];
 }
-export interface SidEntryR {
-  runway: string;
-  points: string[];
+export interface SidEntryR extends SidEntry {
+  tip: string;
 }
 export interface SidsData {
   [sidName: string]: SidEntry;
 }
 export interface SidsDataR {
-  [sidName: string]: SidEntry;
+  [sidName: string]: SidEntryR;
 }
 
 export interface StarPoint {
@@ -67,18 +77,39 @@ export interface StarEntry {
   points: StarPoint[];
 }
 
+export interface StarEntryR extends StarEntry {
+  tip: string;
+}
+
 export interface StarsData {
   [starName: string]: StarEntry;
 }
 
 export interface StarsDataR {
-  [starName: string]: StarEntry;
+  [starName: string]: StarEntryR;
 }
 
 export interface VolumeEntry {
   lower_level: number;
   upper_level: number;
   points: string[];
+}
+export interface VolumeEntryR extends VolumeEntry {
+  center: [number, number];
+  area: number;
+  tip: string;
+}
+
+export interface RunwayData {
+  airport: string;
+  point: string;
+  heading: number;
+  length: number;
+}
+
+export interface RunwayDataR extends RunwayData {
+  proj: [number, number];
+  proj1: [number, number];
 }
 
 /**
@@ -90,7 +121,14 @@ export interface VolumesData {
 }
 
 export interface VolumesDataR {
-  [volumeName: string]: VolumeEntry;
+  [volumeName: string]: VolumeEntryR;
+}
+
+export interface SectorDataR {
+  volumes: string[];
+  center: [number, number];
+  tip: string;
+  lines: string[][];
 }
 
 export interface FlightPointsData {
@@ -136,33 +174,55 @@ export interface DataState {
   exercise: ExerciseData | null;
   geo_pts: GeoPtsData | null;
   airways: AirwaysData | null;
+  airports: Record<string, [number, number]> | null;
+  runways: Record<string, RunwayData> | null;
   sids: SidsData | null;
   stars: StarsData | null;
-  volumes: VolumesData;
+  volumes: VolumesData | null;
+  sectors: Record<string, [string]> | null;
   flights: FlightEntry[] | null;
 }
 export interface DataStateR {
   exercise: ExerciseDataR;
   geo_pts: GeoPtsDataR;
   airways: AirwaysDataR;
+  airports: Record<string, AirportDataR>;
+  runways: Record<string, RunwayDataR>;
   sids: SidsDataR;
   stars: StarsDataR;
   volumes: VolumesDataR;
+  sectors: Record<string, SectorDataR>;
   flights: FlightEntryR[];
 }
 
 export interface VisibilityCategory {
   items: Record<string, boolean>;
   showLabels: boolean;
+  showPoints?: boolean;
 }
 export interface VisibilityState {
   navpts: VisibilityCategory;
   outls: VisibilityCategory;
   airports: VisibilityCategory;
+  runways: VisibilityCategory;
   airways: VisibilityCategory;
   sids: VisibilityCategory;
   stars: VisibilityCategory;
-  sectors: VisibilityCategory;
   volumes: VisibilityCategory;
+  sectors: VisibilityCategory;
   flights: VisibilityCategory;
 }
+
+export type DataKey =
+  | "exercise"
+  | "geo_pts"
+  | "airports"
+  | "runways"
+  | "airways"
+  | "sids"
+  | "stars"
+  | "volumes"
+  | "sectors"
+  | "flights";
+
+export type LoadStatus = "pending" | "loaded" | "finished" | "error" | "error parsing";

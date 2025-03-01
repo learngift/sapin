@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, RefObject } from "react";
-import { DataStateR, VisibilityState } from "@/utils/types";
+import { DataStateR, SectorDataR, VisibilityState } from "@/utils/types";
 import { Button } from "@/components/ui/button";
 import SideBar from "./SideBar";
 
@@ -47,24 +47,23 @@ interface CanvasComponentProps {
 const CanvasComponent = ({ data }: CanvasComponentProps) => {
   //const [fps, setFps] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-  const airways = Object.keys(data.airways);
-  console.log("airways", data.airways);
+  const toRecordStringBoolean = (o: object, b: boolean) =>
+    Object.assign({}, ...Object.keys(o).map((k) => ({ [k]: b })));
   const visibility = useRef<VisibilityState>({
-    navpts: {
+    navpts: { showLabels: false, items: toRecordStringBoolean(data.geo_pts.nav, true) },
+    outls: { showLabels: false, items: toRecordStringBoolean(data.geo_pts.outl, false) },
+    airports: { showLabels: false, items: toRecordStringBoolean(data.airports, false) },
+    runways: { showLabels: false, showPoints: false, items: toRecordStringBoolean(data.runways, true) },
+    sids: { showLabels: false, showPoints: false, items: toRecordStringBoolean(data.sids, false) },
+    stars: { showLabels: false, showPoints: false, items: toRecordStringBoolean(data.stars, false) },
+    airways: { showLabels: false, showPoints: false, items: toRecordStringBoolean(data.airways, false) },
+    volumes: { showLabels: false, showPoints: false, items: toRecordStringBoolean(data.volumes, false) },
+    sectors: { showLabels: false, items: toRecordStringBoolean(data.sectors, false) },
+    flights: {
       showLabels: false,
-      items: Object.assign({}, ...Object.keys(data.geo_pts.nav).map((k) => ({ [k]: true }))),
+      showPoints: false,
+      items: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: false }))),
     },
-    outls: {
-      showLabels: false,
-      items: Object.assign({}, ...Object.keys(data.geo_pts.outl).map((k) => ({ [k]: false }))),
-    },
-    airports: { showLabels: false, items: {} },
-    sids: { showLabels: false, items: Object.assign({}, ...Object.keys(data.sids).map((k) => ({ [k]: true }))) },
-    stars: { showLabels: false, items: Object.assign({}, ...Object.keys(data.stars).map((k) => ({ [k]: true }))) },
-    airways: { showLabels: false, items: Object.assign({}, ...airways.map((k) => ({ [k]: true }))) },
-    sectors: { showLabels: false, items: {} },
-    volumes: { showLabels: false, items: Object.assign({}, ...Object.keys(data.volumes).map((k) => ({ [k]: true }))) },
-    flights: { showLabels: false, items: Object.assign({}, ...data.flights.map((k) => ({ [k.callsign]: false }))) },
   });
   const pos = useRef<[number, number]>([0, 0]);
   const fps = useRef<number>(0);
@@ -114,53 +113,13 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       const airwayColor = dm ? cp[6] : cp[5];
       const sidColor = dm ? cp[11] : cp[5];
       const starColor = dm ? cp[12] : cp[5];
-      //const runwayColor = dm ? cp[13] : cp[5];
+      const runwayColor = dm ? cp[16] : cp[14];
       const volumeColor = dm ? cp[13] : cp[5];
+      const volumeFillColor = dm ? "#222" : "#ccc";
       const flightColor = dm ? cp[16] : cp[14];
       const triangleChar = "▲";
 
       const pts = data.geo_pts;
-      // outls
-      ctx.fillStyle = volumeColor;
-      ctx.font = `7px sans-serif`;
-      for (const k in pts.outl) {
-        if (visibility.current.outls.items[k]) {
-          const [x, y] = pts.proj[k];
-          ctx.fillText(triangleChar, toX(x) - 3, toY(y) + 1);
-        }
-      }
-      if (visibility.current.outls.showLabels) {
-        ctx.font = `10px sans-serif`;
-        for (const k in pts.outl) {
-          if (visibility.current.outls.items[k]) {
-            const [x, y] = pts.proj[k];
-            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
-          }
-        }
-      }
-
-      // Nav points
-      ctx.fillStyle = geoPtsSymbolColor;
-      ctx.font = `10px sans-serif`;
-      for (const k in pts.nav) {
-        if (visibility.current.navpts.items[k]) {
-          const [x, y] = pts.proj[k];
-          ctx.fillText(triangleChar, toX(x) - 4, toY(y) + 2);
-        }
-      }
-      if (visibility.current.navpts.showLabels)
-        for (const k in pts.nav) {
-          if (visibility.current.navpts.items[k]) {
-            const [x, y] = pts.proj[k];
-            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
-          }
-        }
-
-      // lat long
-      ctx.fillStyle = fpsColor;
-      const latLong = data.exercise.proj.stereo2geo(pos.current);
-      ctx.fillText(`${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`, 10, ctx.canvas.height - 2);
-
       // console.log(`draw ${toX(x)} ${toY(y)}`);
       //ctx.beginPath();
       //ctx.arc(x, y, 5, 0, 2 * Math.PI);
@@ -177,18 +136,154 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
           }
         }
       };
+      const forcedPtsSet = new Set<string>();
+      if (visibility.current.airways.showPoints)
+        for (const k in data.airways)
+          if (visibility.current.airways.items[k]) for (const p of data.airways[k].points) forcedPtsSet.add(p);
+      if (visibility.current.sids.showPoints)
+        for (const k in data.sids)
+          if (visibility.current.sids.items[k]) for (const p of data.sids[k].points) forcedPtsSet.add(p);
+      if (visibility.current.stars.showPoints)
+        for (const k in data.stars)
+          if (visibility.current.stars.items[k]) for (const p of data.stars[k].points) forcedPtsSet.add(p.point_name);
+      if (visibility.current.flights.showPoints)
+        for (const f of data.flights)
+          if (visibility.current.flights.items[f.callsign]) for (const p of f.points.points) forcedPtsSet.add(p);
+
+      // Sectors
+      const forcedVolumeSet = new Set<string>();
+      for (const k in data.sectors) {
+        if (visibility.current.sectors.items[k]) {
+          const sector: SectorDataR = data.sectors[k];
+          for (const v of sector.volumes) {
+            forcedVolumeSet.add(v);
+          }
+          if (visibility.current.volumes.showPoints) {
+            for (const l of sector.lines) {
+              for (const p of l) {
+                forcedPtsSet.add(p);
+              }
+            }
+          }
+        }
+      }
+      // Volumes
+      ctx.fillStyle = volumeFillColor;
+      for (const k in data.volumes) {
+        if (visibility.current.volumes.items[k] || forcedVolumeSet.has(k)) {
+          ctx.beginPath();
+          drawLineOfPoints(data.volumes[k].points);
+          ctx.closePath();
+          ctx.fill();
+        }
+        if (visibility.current.volumes.showPoints && visibility.current.volumes.items[k]) {
+          for (const p of data.volumes[k].points) forcedPtsSet.add(p);
+        }
+      }
+      ctx.strokeStyle = volumeColor;
+      for (const k in data.volumes) {
+        if (visibility.current.volumes.items[k]) {
+          ctx.beginPath();
+          drawLineOfPoints(data.volumes[k].points);
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+      // Sector
+      ctx.beginPath();
+      for (const k in data.sectors) {
+        if (visibility.current.sectors.items[k]) {
+          const sector: SectorDataR = data.sectors[k];
+          for (const l of sector.lines) {
+            drawLineOfPoints(l);
+          }
+        }
+      }
+      ctx.stroke();
+      //
+      ctx.fillStyle = geoPtsSymbolColor;
+      ctx.font = `11px sans-serif`;
+      for (const k in data.volumes) {
+        if (visibility.current.volumes.items[k]) {
+          const [x, y] = data.volumes[k].center;
+          ctx.fillText(k, toX(x) - 3, toY(y) + 1);
+        }
+      }
+      for (const k in data.sectors) {
+        if (visibility.current.sectors.items[k]) {
+          const [x, y] = data.sectors[k].center;
+          ctx.fillText(k, toX(x) - 3, toY(y) + 1);
+        }
+      }
+      // outls
+      ctx.fillStyle = volumeColor;
+      ctx.font = `7px sans-serif`;
+      for (const k in pts.outl) {
+        if (visibility.current.outls.items[k] || forcedPtsSet.has(k)) {
+          const [x, y] = pts.proj[k];
+          ctx.fillText(triangleChar, toX(x) - 3, toY(y) + 1);
+        }
+      }
+      if (visibility.current.outls.showLabels) {
+        ctx.font = `10px sans-serif`;
+        for (const k in pts.outl) {
+          if (visibility.current.outls.items[k] || forcedPtsSet.has(k)) {
+            const [x, y] = pts.proj[k];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          }
+        }
+      }
+
+      // Nav points
+      ctx.fillStyle = geoPtsSymbolColor;
+      ctx.font = `10px sans-serif`;
+      for (const k in pts.nav) {
+        if (visibility.current.navpts.items[k] || forcedPtsSet.has(k)) {
+          const [x, y] = pts.proj[k];
+          ctx.fillText(triangleChar, toX(x) - 4, toY(y) + 2);
+        }
+      }
+      if (visibility.current.navpts.showLabels)
+        for (const k in pts.nav) {
+          if (visibility.current.navpts.items[k] || forcedPtsSet.has(k)) {
+            const [x, y] = pts.proj[k];
+            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          }
+        }
+      // Airports
+      ctx.fillStyle = geoPtsSymbolColor;
+      ctx.font = `10px sans-serif`;
+      for (const k in data.airports) {
+        if (visibility.current.airports.items[k]) {
+          const [x, y] = data.airports[k].proj;
+          ctx.fillText("⊗", toX(x) - 4, toY(y) + 2);
+        }
+      }
+      if (visibility.current.airports.showLabels)
+        for (const k in data.airports) {
+          if (visibility.current.airports.items[k]) {
+            const [x, y] = data.airports[k].proj;
+            ctx.fillText(k, toX(x) + 8, toY(y) - 5);
+          }
+        }
+
+      // lat long
+      ctx.fillStyle = fpsColor;
+      const latLong = data.exercise.proj.stereo2geo(pos.current);
+      ctx.fillText(`${data.exercise.proj.formatLatLon(latLong)}   ${fps.current} fps`, 10, ctx.canvas.height - 2);
+
       // Airways
       ctx.strokeStyle = airwayColor;
       ctx.beginPath();
       for (const k in data.airways) {
-        if (visibility.current.airways.items[k]) drawLineOfPoints(data.airways[k]);
+        if (visibility.current.airways.items[k]) drawLineOfPoints(data.airways[k].points);
       }
       ctx.stroke();
       if (visibility.current.airways.showLabels) {
         ctx.fillStyle = airwayColor;
         for (const k in data.airways) {
           if (visibility.current.airways.items[k]) {
-            const ps = data.airways[k];
+            const ps = data.airways[k].points;
             const [x, y] = pts.proj[ps[ps.length - 1]];
             const [xx, yy] = pts.proj[ps[0]];
             // display the name near the first point and near last point
@@ -230,14 +325,24 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
           }
         }
       }
-      // Volumes
-      ctx.strokeStyle = volumeColor;
-      for (const k in data.volumes) {
-        if (visibility.current.volumes.items[k]) {
-          ctx.beginPath();
-          drawLineOfPoints(data.volumes[k].points);
-          ctx.closePath();
-          ctx.stroke();
+      // runways
+      ctx.strokeStyle = runwayColor;
+      ctx.beginPath();
+      for (const k in data.runways) {
+        if (visibility.current.runways.items[k]) {
+          const r = data.runways[k];
+          ctx.moveTo(toX(r.proj[0]), toY(r.proj[1]));
+          ctx.lineTo(toX(r.proj1[0]), toY(r.proj1[1]));
+        }
+      }
+      ctx.stroke();
+      if (visibility.current.runways.showLabels) {
+        ctx.fillStyle = runwayColor;
+        for (const k in data.runways) {
+          if (visibility.current.runways.items[k]) {
+            const r = data.runways[k];
+            ctx.fillText(k, toX(r.proj[0]) + 8, toY(r.proj[1]) - 10);
+          }
         }
       }
       // flights
@@ -350,12 +455,6 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
 
   const updateVisibility = (newVisibility: VisibilityState) => {
     Object.assign(visibility.current, newVisibility);
-    let nb = 0;
-    const airways = newVisibility.airways.items;
-    for (const airway in airways) {
-      if (airways[airway]) nb++;
-    }
-    console.log(`count=${nb}`);
   };
 
   //const sty = { height: "calc(100vh - 6.5rem)" };
@@ -375,7 +474,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } z-40`}
       >
-        <SideBar visibility={visibility.current} updateVisibility={updateVisibility} />
+        <SideBar visibility={visibility.current} updateVisibility={updateVisibility} alltips={data} />
       </div>
       <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full border-none m-0 p-0" />
     </>

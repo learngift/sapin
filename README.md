@@ -1,3 +1,17 @@
+## TODO:
+
+- ajouter du rouge lorsqu'une donnée est invalide.
+- ajouter le nom des volumes et des secteurs
+- hole overlaps
+- navigation des avions (si PVT dispo)
+- STCA, NCA
+- pour les secteurs n'afficher que le contour extérieur
+- avoir des infobulles (par exemple pour un secteur afficher les volumes et niveaux)
+- pouvoir déplacer les noms si il y a chevauchement.
+- impression
+- export/import des visibilités, zoom et déplacements pour pouvoir reproduire une impression. reset des déplacements
+- pouvoir sélectionner un volume ou secteur ???
+
 ##Diary: step 1: create project
 
 ```

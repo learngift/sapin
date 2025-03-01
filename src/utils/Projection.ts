@@ -2,6 +2,36 @@ const ratio = Math.PI / (180 * 3600);
 const sec2rad = (seconds: number): number => seconds * ratio;
 const rad2sec = (radians: number): number => radians / ratio;
 
+export const translate = ([latsec, longsec]: [number, number], dist: number, track: number): [number, number] => {
+  const lat = sec2rad(latsec);
+  const d = Math.sin(sec2rad(dist * 60)); // 1Nm = 1 minute of angle
+  const t = sec2rad(track * 3600);
+  latsec += rad2sec(Math.asin(Math.cos(t) * d));
+  longsec += rad2sec(Math.asin((Math.sin(t) * d) / Math.cos(lat)));
+  return [latsec, longsec];
+};
+
+export const centerAndArea = (points: [number, number][]): [[number, number], number] => {
+  const n = points.length;
+  let cx = 0,
+    cy = 0,
+    area = 0;
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = points[i];
+    const [x2, y2] = points[(i + 1) % n];
+    const factor = x1 * y2 - x2 * y1;
+    cx += (x1 + x2) * factor;
+    cy += (y1 + y2) * factor;
+    area += factor;
+  }
+
+  area *= 0.5;
+  cx /= 6 * area;
+  cy /= 6 * area;
+
+  return [[cx, cy], area];
+};
+
 export default class Projection {
   // Earth radius expressed in Nm
   static earthRadius = 3437.746770785;

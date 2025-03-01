@@ -1,21 +1,23 @@
 import { useState } from "react";
 import VisibilitySelection from "@/components/map/VisibilitySelection";
-import { VisibilityState, VisibilityCategory } from "@/utils/types";
+import { DataStateR, VisibilityState, VisibilityCategory } from "@/utils/types";
 
 interface SidebarProps {
   visibility: VisibilityState;
   updateVisibility: (newVisibility: VisibilityState) => void;
+  alltips: DataStateR;
 }
 
-const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
+const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips }) => {
   const [selectedNavpts, setSelectedNavpts] = useState<VisibilityCategory>(visibility.navpts);
   const [selectedOutls, setSelectedOutls] = useState<VisibilityCategory>(visibility.outls);
   const [selectedAirports, setSelectedAirports] = useState<VisibilityCategory>(visibility.airports);
+  const [selectedRunways, setSelectedRunways] = useState<VisibilityCategory>(visibility.runways);
   const [selectedSids, setSelectedSids] = useState<VisibilityCategory>(visibility.sids);
   const [selectedStars, setSelectedStars] = useState<VisibilityCategory>(visibility.stars);
   const [selectedAirways, setSelectedAirways] = useState<VisibilityCategory>(visibility.airways);
-  const [selectedSectors, setSelectedSectors] = useState<VisibilityCategory>(visibility.sectors);
   const [selectedVolumes, setSelectedVolumes] = useState<VisibilityCategory>(visibility.volumes);
+  const [selectedSectors, setSelectedSectors] = useState<VisibilityCategory>(visibility.sectors);
   const [selectedFlights, setSelectedFlights] = useState<VisibilityCategory>(visibility.flights);
   const [openSelection, setOpenSelection] = useState<string>("");
 
@@ -33,6 +35,10 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
   const handlesetSelectedAirports = (updated: VisibilityCategory): void => {
     setSelectedAirports(updated);
     updateVisibility({ ...visibility, airports: updated });
+  };
+  const handlesetSelectedRunways = (updated: VisibilityCategory): void => {
+    setSelectedRunways(updated);
+    updateVisibility({ ...visibility, runways: updated });
   };
   const handlesetSelectedSids = (updated: VisibilityCategory): void => {
     setSelectedSids(updated);
@@ -63,40 +69,64 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
     <>
       <ul className="space-y-2">
         <li>
-          <button onClick={handleClick("navpts")}>Nav Points</button>
+          <button onClick={handleClick("navpts")} className={openSelection === "navpts" ? "active" : undefined}>
+            Nav Points
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("outls")}>Outl Points</button>
+          <button onClick={handleClick("outls")} className={openSelection === "outls" ? "active" : undefined}>
+            Outl Points
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("airports")}>Airports</button>
+          <button onClick={handleClick("airports")} className={openSelection === "airports" ? "active" : undefined}>
+            Airports
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("airways")}>Airways</button>
+          <button onClick={handleClick("runways")} className={openSelection === "runways" ? "active" : undefined}>
+            Runways
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("sids")}>SIDs</button>
+          <button onClick={handleClick("sids")} className={openSelection === "sids" ? "active" : undefined}>
+            SIDs
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("stars")}>STARs</button>
+          <button onClick={handleClick("stars")} className={openSelection === "stars" ? "active" : undefined}>
+            STARs
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("runways")}>Runways</button>
+          <button onClick={handleClick("airways")} className={openSelection === "airways" ? "active" : undefined}>
+            Airways
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("sectors")}>Sectors</button>
+          <button onClick={handleClick("volumes")} className={openSelection === "volumes" ? "active" : undefined}>
+            Volumes
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("volumes")}>Volumes</button>
+          <button onClick={handleClick("sectors")} className={openSelection === "sectors" ? "active" : undefined}>
+            Sectors
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("flights")}>Flights</button>
+          <button onClick={handleClick("flights")} className={openSelection === "flights" ? "active" : undefined}>
+            Flights
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("overlaps")}>Holes & Overlaps</button>
+          <button onClick={handleClick("overlaps")} className={openSelection === "overlaps" ? "active" : undefined}>
+            Holes & Overlaps
+          </button>
         </li>
         <li>
-          <button onClick={handleClick("play")}>Play</button>
+          <button onClick={handleClick("play")} className={openSelection === "play" ? "active" : undefined}>
+            Play
+          </button>
         </li>
       </ul>
       {openSelection === "navpts" && (
@@ -123,8 +153,22 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
           onClose={handleClose}
         />
       )}
+      {openSelection === "runways" && (
+        <VisibilitySelection
+          title="Runways"
+          data={selectedRunways}
+          setData={handlesetSelectedRunways}
+          onClose={handleClose}
+        />
+      )}
       {openSelection === "sids" && (
-        <VisibilitySelection title="Sids" data={selectedSids} setData={handlesetSelectedSids} onClose={handleClose} />
+        <VisibilitySelection
+          title="Sids"
+          data={selectedSids}
+          setData={handlesetSelectedSids}
+          onClose={handleClose}
+          tips={alltips.sids}
+        />
       )}
       {openSelection === "stars" && (
         <VisibilitySelection
@@ -132,6 +176,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
           data={selectedStars}
           setData={handlesetSelectedStars}
           onClose={handleClose}
+          tips={alltips.stars}
         />
       )}
       {openSelection === "airways" && (
@@ -140,14 +185,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
           data={selectedAirways}
           setData={handlesetSelectedAirways}
           onClose={handleClose}
-        />
-      )}
-      {openSelection === "sectors" && (
-        <VisibilitySelection
-          title="Sectors"
-          data={selectedSectors}
-          setData={handlesetSelectedSectors}
-          onClose={handleClose}
+          tips={alltips.airways}
         />
       )}
       {openSelection === "volumes" && (
@@ -156,6 +194,16 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility }) => {
           data={selectedVolumes}
           setData={handlesetSelectedVolumes}
           onClose={handleClose}
+          tips={alltips.volumes}
+        />
+      )}
+      {openSelection === "sectors" && (
+        <VisibilitySelection
+          title="Sectors"
+          data={selectedSectors}
+          setData={handlesetSelectedSectors}
+          onClose={handleClose}
+          tips={alltips.sectors}
         />
       )}
       {openSelection === "flights" && (

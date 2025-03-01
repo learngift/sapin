@@ -25,12 +25,10 @@ function ExerciseList() {
       })
       .then((data) => {
         // Transformer l'objet en tableau [{ name, description }]
-        const formattedExercises: Exercise[] = Object.entries(data).map(
-          ([name, description]) => ({
-            name,
-            description,
-          })
-        );
+        const formattedExercises: Exercise[] = Object.entries(data).map(([name, description]) => ({
+          name,
+          description,
+        }));
         setExercises(formattedExercises);
         setLoading(false);
       })
@@ -48,15 +46,9 @@ function ExerciseList() {
 
   // ✅ Gérer le clic sur un exercice
   const handleExerciseClick = (exerciseName: string) => {
-    const updatedRecent = [
-      exerciseName,
-      ...recentExercises.filter((name) => name !== exerciseName),
-    ].slice(0, 3);
+    const updatedRecent = [exerciseName, ...recentExercises.filter((name) => name !== exerciseName)].slice(0, 3);
     setRecentExercises(updatedRecent);
-    localStorage.setItem(
-      `recentExercises_${simulationId}`,
-      JSON.stringify(updatedRecent)
-    );
+    localStorage.setItem(`recentExercises_${simulationId}`, JSON.stringify(updatedRecent));
 
     // Redirection vers la page de l'exercice
     navigate(`/exercise/${simulationId}/${exerciseName}`);
@@ -74,9 +66,7 @@ function ExerciseList() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Exercices of simulation {simulationId}
-      </h1>
+      <h1 className="text-2xl font-bold mb-4">Exercices of simulation {simulationId}</h1>
 
       {/* ✅ Champ de recherche */}
       <input
@@ -102,9 +92,7 @@ function ExerciseList() {
                   className="p-4 rounded-lg shadow bg-blue-50 dark:bg-blue-900 hover:shadow-lg transition cursor-pointer"
                 >
                   <h2 className="text-lg font-semibold">{exercise.name}</h2>
-                  <p className="text-sm text-justify text-gray-700 dark:text-gray-400">
-                    {exercise.description}
-                  </p>
+                  <p className="text-sm text-justify text-gray-700 dark:text-gray-400">{exercise.description}</p>
                 </li>
               );
             })}
@@ -121,9 +109,7 @@ function ExerciseList() {
             className="p-4 rounded-lg shadow bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
           >
             <h2 className="text-lg font-semibold">{exercise.name}</h2>
-            <p className="text-sm text-justify text-gray-700 dark:text-gray-400">
-              {exercise.description}
-            </p>
+            <p className="text-sm text-justify text-gray-700 dark:text-gray-400">{exercise.description}</p>
           </li>
         ))}
       </ul>

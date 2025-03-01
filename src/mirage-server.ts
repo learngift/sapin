@@ -28,8 +28,9 @@ export function makeServer({ environment = "development" } = {}) {
       this.namespace = "api"; // Toutes les requêtes passeront par /api
 
       this.post("/login", (schema: any, request: any) => {
-        const attrs = JSON.parse(request.requestBody);
-        const { email, password } = attrs;
+        const requestBody = new URLSearchParams(request.requestBody); // ✅ Parse form-data
+        const email = requestBody.get("username");
+        const password = requestBody.get("password");
 
         // Recherche de l'utilisateur correspondant
         const user = schema.users.findBy({ email });

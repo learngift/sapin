@@ -5,9 +5,10 @@ interface VisibilitySelectionProps {
   data: VisibilityCategory;
   setData: (newData: VisibilityCategory) => void;
   onClose: () => void;
+  tips?: Record<string, { tip?: string }>;
 }
 
-const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, setData, onClose }) => {
+const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, setData, onClose, tips }) => {
   const handleSelectAll = () => {
     const updated: Record<string, boolean> = { ...data.items };
     for (const k in updated) {
@@ -32,6 +33,9 @@ const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, 
   const setShowLabels = (show: boolean) => {
     setData({ ...data, showLabels: show });
   };
+  const setShowPoints = (show: boolean) => {
+    setData({ ...data, showPoints: show });
+  };
 
   return (
     <div className="absolute left-full top-0 h-full w-80 bg-white dark:bg-gray-900 shadow-lg p-4 z-50 overflow-y-auto">
@@ -45,42 +49,45 @@ const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, 
 
       <ul className="grid grid-cols-3 gap-2">
         <li className="flex items-center gap-2">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handleSelectAll();
-            }}
-            className=" hover:underline"
-          >
-            Select all
-          </a>
+          <button onClick={handleSelectAll}>
+            Select
+            <br />
+            all
+          </button>
         </li>
         <li className="flex items-center gap-2">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              handleDeselectAll();
-            }}
-            className="hover:underline"
-          >
-            Deselect all
-          </a>
+          <button onClick={handleDeselectAll}>
+            Deselect
+            <br />
+            all
+          </button>
         </li>
-        <li className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            onChange={() => setShowLabels(!data.showLabels)}
-            checked={data.showLabels}
-            className="accent-blue-500"
-          />
-          <label className="cursor-pointer">Labels</label>
+        <li className="flex flex-col items-center gap-2">
+          <div>
+            <input
+              type="checkbox"
+              onChange={() => setShowLabels(!data.showLabels)}
+              checked={data.showLabels}
+              className="accent-blue-500"
+            />
+            <label className="cursor-pointer">Labels</label>
+          </div>
+          {data.showPoints !== undefined && (
+            <div>
+              <input
+                type="checkbox"
+                onChange={() => setShowPoints(!data.showPoints)}
+                checked={data.showPoints}
+                className="accent-blue-500"
+              />
+              <label className="cursor-pointer">Points</label>
+            </div>
+          )}
         </li>
         {Object.entries(data.items).map(([k, v]) => (
           <li key={k} className="flex items-center gap-2">
             <input type="checkbox" onChange={() => handleCheckboxChange(k)} checked={v} className="accent-blue-500" />
-            <label>{k}</label>
+            <label title={tips?.[k]?.tip ?? undefined}>{k}</label>
           </li>
         ))}
       </ul>
