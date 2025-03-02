@@ -13,6 +13,8 @@ const zoomStep = [1, 1.5, 2, 3, 4, 6, 8, 12, 16, 24, 32];
 let zoomIndex = 0;
 let refScale: number, refOffsetX: number, refOffsetY: number, scale: number, offsetX: number, offsetY: number;
 
+const hasNoErrorOrWarning = (obj?: { error?: string; warning?: string }) => !obj?.error && !obj?.warning;
+
 function calculateScaleAndOffset(bounds: Bounds, canvasWidth: number, canvasHeight: number): [number, number, number] {
   const dataWidth = bounds.xMax - bounds.xMin;
   const dataHeight = bounds.yMax - bounds.yMin;
@@ -331,8 +333,10 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
       for (const k in data.runways) {
         if (visibility.current.runways.items[k]) {
           const r = data.runways[k];
-          ctx.moveTo(toX(r.proj[0]), toY(r.proj[1]));
-          ctx.lineTo(toX(r.proj1[0]), toY(r.proj1[1]));
+          if (hasNoErrorOrWarning(r)) {
+            ctx.moveTo(toX(r.proj![0]), toY(r.proj![1]));
+            ctx.lineTo(toX(r.proj1![0]), toY(r.proj1![1]));
+          }
         }
       }
       ctx.stroke();
@@ -340,8 +344,8 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
         ctx.fillStyle = runwayColor;
         for (const k in data.runways) {
           if (visibility.current.runways.items[k]) {
-            const r = data.runways[k];
-            ctx.fillText(k, toX(r.proj[0]) + 8, toY(r.proj[1]) - 10);
+            const r: [number, number] = data.runways[k].proj!;
+            ctx.fillText(k, toX(r[0]) + 8, toY(r[1]) - 10);
           }
         }
       }
@@ -474,7 +478,7 @@ const CanvasComponent = ({ data }: CanvasComponentProps) => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } z-40`}
       >
-        <SideBar visibility={visibility.current} updateVisibility={updateVisibility} alltips={data} />
+        <SideBar visibility={visibility.current} updateVisibility={updateVisibility} dataR={data} />
       </div>
       <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full border-none m-0 p-0" />
     </>

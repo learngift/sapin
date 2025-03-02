@@ -5,38 +5,55 @@ interface Exercise {
   name: string;
   description: string;
 }
+let i = 0,
+  j = 0;
 
 function ExerciseList() {
   const { simulationId } = useParams(); // Récupère le paramètre de l'URL
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [exercises, setExercises] = useState<Exercise[] | string>("Chargement des exercices...");
   const [searchQuery, setSearchQuery] = useState("");
   const [recentExercises, setRecentExercises] = useState<string[]>([]);
   const navigate = useNavigate();
+  console.log(
+    `render ${i++} simulationId=${simulationId} searchQuery=${searchQuery} recentExercises=${recentExercises}`
+  );
 
   useEffect(() => {
+    let isCancelled = false;
     // Charger les exercices depuis le fichier JSON correspondant à la simulation
+    const local_j = j++;
+
+    console.log(`fetch ${local_j}`);
     fetch(`/api/${simulationId}/exercises.json`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Erreur lors du chargement des exercices");
+          throw new Error("Error when loading exercices");
         }
         return response.json() as Promise<Record<string, string>>;
       })
       .then((data) => {
-        // Transformer l'objet en tableau [{ name, description }]
-        const formattedExercises: Exercise[] = Object.entries(data).map(([name, description]) => ({
-          name,
-          description,
-        }));
-        setExercises(formattedExercises);
-        setLoading(false);
+        if (!isCancelled) {
+          // Transformer l'objet en tableau [{ name, description }]
+          const formattedExercises: Exercise[] = Object.entries(data).map(([name, description]) => ({
+            name,
+            description,
+          }));
+          setExercises(formattedExercises);
+        }
       })
       .catch((error) => {
-        console.error("Erreur:", error);
-        setLoading(false);
+        if (!isCancelled) {
+          console.error("Error:", error);
+          setExercises(error instanceof Error ? error.message : String(error));
+        }
       });
+    return () => {
+      console.log(`cancel ${local_j}`);
+      isCancelled = true;
+    };
+  }, [simulationId]);
 
+  useEffect(() => {
     // ✅ Charger les exercices récents depuis le localStorage
     const recent = localStorage.getItem(`recentExercises_${simulationId}`);
     if (recent) {
@@ -54,15 +71,16 @@ function ExerciseList() {
     navigate(`/exercise/${simulationId}/${exerciseName}`);
   };
 
+  if (typeof exercises === "string") {
+    // loading or in error
+    return <div>{exercises}</div>;
+  }
+
   // ✅ Filtrage des exercices par recherche + tri alphabétique
   const filteredExercises = exercises
     .filter((ex) => !recentExercises.includes(ex.name)) // Exclure les récents
     .filter((ex) => ex.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => a.name.localeCompare(b.name)); // Tri alphabétique
-
-  if (loading) {
-    return <div>Chargement des exercices...</div>;
-  }
 
   return (
     <div className="p-4">

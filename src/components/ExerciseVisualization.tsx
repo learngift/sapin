@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import CanvasComponent from "@/components/map/CanvasComponent";
 import { DataState, DataStateR, DataKey, LoadStatus } from "@/utils/types";
@@ -31,6 +31,9 @@ const dataList: DataKey[] = [
   "flights",
 ];
 
+let i = 0,
+  j = 0;
+
 function ExerciseVisualization() {
   const { simulationId, exerciseId } = useParams(); // Paramètres de l'URL
   const [progress, setProgress] = useState<Record<DataKey, LoadStatus>>(
@@ -41,36 +44,7 @@ function ExerciseVisualization() {
     Object.fromEntries(dataList.map((key) => [key, null])) as unknown as DataState
   );
   const [dataR, setDataR] = useState<DataStateR | null>(null);
-
-  // Fonction pour charger un fichier JSON
-  const fetchJson = useCallback(
-    async (key: DataKey): Promise<void> => {
-      const label = dataModel[key].label;
-      console.log(label);
-      const filename = dataModel[key].api;
-      try {
-        // delay for demo effect
-        const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        const response = await fetch(`/api/${simulationId}/${exerciseId}/${filename}`);
-        if (!response.ok) {
-          throw new Error(`Erreur lors du chargement de ${filename}`);
-        }
-        await delay(Math.random() * (1000 - 200) + 200); // slow
-        // await delay(Math.random() * (100 - 20) + 20); // fast
-        const json = await response.json();
-        console.log(`setData ${key}`);
-        setData((prevData) => (prevData[key] === null ? { ...prevData, [key]: json } : prevData));
-        console.log(`setProgress ${key} loaded`);
-        setProgress((prev) => (prev[key] === "pending" ? { ...prev, [key]: "loaded" } : prev));
-      } catch (error) {
-        console.error(error);
-        console.error(filename);
-        setProgress((prev) => ({ ...prev, [key]: "error" }));
-      }
-    },
-    [simulationId, exerciseId]
-  );
+  console.log(`Render ${i++}`);
 
   useEffect(() => {
     console.log("Component mounted");
@@ -80,9 +54,48 @@ function ExerciseVisualization() {
   }, []);
 
   useEffect(() => {
+    const local_j = j++;
+    console.log(`fetch all ${local_j}`);
+    const cancel = { state: false };
+
+    // Fonction pour charger un fichier JSON
+    const fetchJson = async (key: DataKey, cancel: { state: boolean }): Promise<void> => {
+      const label = dataModel[key].label;
+      console.log(label);
+      const filename = dataModel[key].api;
+      try {
+        // delay for demo effect
+        // const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+        const response = await fetch(`/api/${simulationId}/${exerciseId}/${filename}`);
+        if (!response.ok) {
+          throw new Error(`Erreur lors du chargement de ${filename}`);
+        }
+        // await delay(Math.random() * (1000 - 200) + 200); // slow
+        // await delay(Math.random() * (100 - 20) + 20); // fast
+        const json = await response.json();
+        console.log(`setData ${key}`);
+        if (!cancel.state) {
+          setData((prevData) => (prevData[key] === null ? { ...prevData, [key]: json } : prevData));
+          console.log(`setProgress ${key} loaded`);
+          setProgress((prev) => (prev[key] === "pending" ? { ...prev, [key]: "loaded" } : prev));
+        }
+      } catch (error) {
+        console.error(error);
+        console.error(filename);
+        if (!cancel.state) {
+          setProgress((prev) => ({ ...prev, [key]: "error" }));
+        }
+      }
+    };
+
     // Use Promise.all to parallelize queries
-    Promise.all(dataList.map((key) => fetchJson(key)));
-  }, [simulationId, exerciseId, fetchJson]);
+    Promise.all(dataList.map((key) => fetchJson(key, cancel)));
+    return () => {
+      console.log(`cancel ${local_j}`);
+      cancel.state = true;
+    };
+  }, [simulationId, exerciseId]);
 
   useEffect(() => {
     if (progress.flights !== "finished") {
@@ -139,11 +152,11 @@ function ExerciseVisualization() {
       ) : (
         // Afficher l'état de progression si le chargement n'est pas terminé
         <div>
-          <h1>Visualisation de l'exercice {exerciseId}</h1>
+          <h1>Exercise loading progression {exerciseId}</h1>
           <table>
             <thead>
               <tr>
-                <th>Étape</th>
+                <th>Domain</th>
                 <th>Status</th>
               </tr>
             </thead>

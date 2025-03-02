@@ -5,7 +5,7 @@ interface VisibilitySelectionProps {
   data: VisibilityCategory;
   setData: (newData: VisibilityCategory) => void;
   onClose: () => void;
-  tips?: Record<string, { tip?: string }>;
+  tips?: Record<string, { tip?: string; error?: string; warning?: string }>;
 }
 
 const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, setData, onClose, tips }) => {
@@ -84,12 +84,23 @@ const VisibilitySelection: React.FC<VisibilitySelectionProps> = ({ title, data, 
             </div>
           )}
         </li>
-        {Object.entries(data.items).map(([k, v]) => (
-          <li key={k} className="flex items-center gap-2">
-            <input type="checkbox" onChange={() => handleCheckboxChange(k)} checked={v} className="accent-blue-500" />
-            <label title={tips?.[k]?.tip ?? undefined}>{k}</label>
-          </li>
-        ))}
+        {Object.entries(data.items).map(([k, v]) => {
+          const tipInfo = tips?.[k];
+          const tooltip = [tipInfo?.tip, tipInfo?.error, tipInfo?.warning].filter(Boolean).join("\n");
+          const className = tipInfo?.error
+            ? "text-red-900 dark:text-red-600"
+            : tipInfo?.warning
+            ? "text-orange-900 dark:text-orange-600"
+            : "accent-blue-500";
+          return (
+            <li key={k} className="flex items-center gap-2">
+              <input type="checkbox" onChange={() => handleCheckboxChange(k)} checked={v} />
+              <label title={tooltip} className={className}>
+                {k}
+              </label>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

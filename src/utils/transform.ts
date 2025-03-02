@@ -11,6 +11,7 @@ import {
   SidEntry,
   SidEntryR,
   SidsDataR,
+  StarPoint,
   StarEntry,
   StarEntryR,
   StarsDataR,
@@ -23,6 +24,8 @@ import {
 } from "@/utils/types";
 import Projection, { translate, centerAndArea } from "@/utils/Projection";
 //import { Geometry } from "@/utils/Geometry";
+
+const isInvalidNumber = (v: unknown): boolean => typeof v !== "number" || isNaN(v);
 
 // after reception of all data, we process it
 // setProgress is used to update the loading status
@@ -85,21 +88,42 @@ export function processData(
     Object.entries(data.airports!).map(airportDataToR)
   );
 
-  const runwayDataToR = ([k, v]: [string, RunwayData]) => {
-    let latlong = new_geo_pts.nav[v.point];
-    latlong = translate(latlong, v.length / 1852, v.heading);
-    const proj = new_geo_pts.proj[v.point];
-    return [k, { ...v, proj: proj, proj1: projection.geo2stereo(latlong) }];
+  const runwayDataToR = ([k, v]: [string, RunwayData]): [string, RunwayDataR] => {
+    try {
+      let latlong = new_geo_pts.nav[v.point];
+      if (latlong === undefined) {
+        throw new Error(`Missing runway threshold ${v.point}`);
+      } else if (isInvalidNumber(v.length) || isInvalidNumber(v.heading)) {
+        throw new Error(`Invalid length or heading ${v.length} ${v.heading}`);
+      }
+      latlong = translate(latlong, v.length / 1852, v.heading);
+      const proj = new_geo_pts.proj[v.point];
+      return [k, { ...v, proj: proj, proj1: projection.geo2stereo(latlong) }];
+    } catch (error) {
+      return [k, { ...v, error: (error as Error).message }];
+    }
   };
   const new_runways: Record<string, RunwayDataR> = Object.fromEntries(Object.entries(data.runways!).map(runwayDataToR));
 
   const sidDataToR = ([k, v]: [string, SidEntry]): [string, SidEntryR] => {
-    return [k, { ...v, tip: v.runway + " - " + v.points.join(" ") }];
+    let error = "";
+    const pts: string[] = [];
+    for (const pt of v.points) {
+      if (pt in new_geo_pts.proj) pts.push(pt);
+      else error = error + `missing point ${pt} `;
+    }
+    return [k, { ...v, points: pts, tip: v.runway + " - " + v.points.join(" "), error: error || undefined }];
   };
   const new_sids: SidsDataR = Object.fromEntries(Object.entries(data.sids!).map(sidDataToR));
 
   const starDataToR = ([k, v]: [string, StarEntry]): [string, StarEntryR] => {
-    return [k, { ...v, tip: v.points.map((e) => e.point_name).join(" ") + " - " + v.runway }];
+    let error = "";
+    const pts: StarPoint[] = [];
+    for (const pt of v.points) {
+      if (pt.point_name in new_geo_pts.proj) pts.push(pt);
+      else error = error + `missing point ${pt.point_name} `;
+    }
+    return [k, { ...v, points: pts, tip: v.points.map((e) => e.point_name).join(" ") + " - " + v.runway }];
   };
   const new_stars: StarsDataR = Object.fromEntries(Object.entries(data.stars!).map(starDataToR));
 

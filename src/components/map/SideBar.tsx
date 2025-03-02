@@ -5,10 +5,10 @@ import { DataStateR, VisibilityState, VisibilityCategory } from "@/utils/types";
 interface SidebarProps {
   visibility: VisibilityState;
   updateVisibility: (newVisibility: VisibilityState) => void;
-  alltips: DataStateR;
+  dataR: DataStateR;
 }
 
-const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips }) => {
+const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, dataR }) => {
   const [selectedNavpts, setSelectedNavpts] = useState<VisibilityCategory>(visibility.navpts);
   const [selectedOutls, setSelectedOutls] = useState<VisibilityCategory>(visibility.outls);
   const [selectedAirports, setSelectedAirports] = useState<VisibilityCategory>(visibility.airports);
@@ -151,6 +151,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedAirports}
           setData={handlesetSelectedAirports}
           onClose={handleClose}
+          tips={dataR.airports}
         />
       )}
       {openSelection === "runways" && (
@@ -159,6 +160,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedRunways}
           setData={handlesetSelectedRunways}
           onClose={handleClose}
+          tips={dataR.runways}
         />
       )}
       {openSelection === "sids" && (
@@ -167,7 +169,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedSids}
           setData={handlesetSelectedSids}
           onClose={handleClose}
-          tips={alltips.sids}
+          tips={dataR.sids}
         />
       )}
       {openSelection === "stars" && (
@@ -176,7 +178,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedStars}
           setData={handlesetSelectedStars}
           onClose={handleClose}
-          tips={alltips.stars}
+          tips={dataR.stars}
         />
       )}
       {openSelection === "airways" && (
@@ -185,7 +187,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedAirways}
           setData={handlesetSelectedAirways}
           onClose={handleClose}
-          tips={alltips.airways}
+          tips={dataR.airways}
         />
       )}
       {openSelection === "volumes" && (
@@ -194,7 +196,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedVolumes}
           setData={handlesetSelectedVolumes}
           onClose={handleClose}
-          tips={alltips.volumes}
+          tips={dataR.volumes}
         />
       )}
       {openSelection === "sectors" && (
@@ -203,7 +205,7 @@ const SideBar: React.FC<SidebarProps> = ({ visibility, updateVisibility, alltips
           data={selectedSectors}
           setData={handlesetSelectedSectors}
           onClose={handleClose}
-          tips={alltips.sectors}
+          tips={dataR.sectors}
         />
       )}
       {openSelection === "flights" && (

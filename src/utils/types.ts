@@ -38,6 +38,7 @@ export interface GeoPtsDataR {
 export interface AirportDataR {
   latlong: [number, number];
   proj: [number, number];
+  tip?: string;
 }
 
 export interface AirwaysData {
@@ -59,6 +60,7 @@ export interface SidEntry {
 }
 export interface SidEntryR extends SidEntry {
   tip: string;
+  error?: string;
 }
 export interface SidsData {
   [sidName: string]: SidEntry;
@@ -79,6 +81,7 @@ export interface StarEntry {
 
 export interface StarEntryR extends StarEntry {
   tip: string;
+  error?: string;
 }
 
 export interface StarsData {
@@ -108,8 +111,10 @@ export interface RunwayData {
 }
 
 export interface RunwayDataR extends RunwayData {
-  proj: [number, number];
-  proj1: [number, number];
+  proj?: [number, number];
+  proj1?: [number, number];
+  error?: string;
+  warning?: string;
 }
 
 /**
